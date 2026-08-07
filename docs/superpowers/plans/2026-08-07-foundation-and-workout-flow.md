@@ -937,7 +937,7 @@ git commit -m "feat: add workout_logs, exercise_logs, sets schema and migration"
 
 **Interfaces:**
 - Consumes: nothing (pure function, no DB).
-- Produces: `suggestNextWorkout(logs: SuggestInput[]): Suggestion`, `SuggestInput = { label: string; date: string; exerciseNames: string[] }`, `Suggestion = { label: string; reason: string; exercises: string[] }` — consumed by the dashboard query in Task 13.
+- Produces: `suggestNextWorkout(logs: SuggestInput[]): Suggestion`, `SuggestInput = { label: string; date: string; exerciseNames: string[] }`, `Suggestion = { label: string; reason: string; exercises: string[] }` — consumed by `getSuggestionForUser` in Task 12, which the dashboard page uses in Task 15.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1358,9 +1358,9 @@ git commit -m "feat: add workout log queries and CRUD server actions"
 - Modify: `src/app/(app)/log/[id]/page.tsx`
 
 **Interfaces:**
-- Consumes: `createWorkoutLog`, `updateWorkoutLog` (Task 12), `getWorkoutLogById` (Task 12), `verifySession` (Task 5), `getExerciseOptionsForUser`/`addCustomExercise` (Task 15 — see note below on ordering).
+- Consumes: `createWorkoutLog`, `updateWorkoutLog` (Task 12), `getWorkoutLogById` (Task 12), `verifySession` (Task 5), `getExerciseOptionsForUser`/`addCustomExercise` (Task 14).
 
-Note: this task assumes Task 15 (exercises) lands first for `ExercisePicker`'s data source; if executing strictly in written order, stub `exerciseOptions={[]}` and `onAddCustom={() => {}}` here and revisit in Task 15's wiring step. To avoid rework, **do Task 15 before this task's Step 2** if following the plan literally, or treat Tasks 13 and 15 as a combined unit.
+**Execution order note:** this task depends on Task 14 (exercises) for `ExercisePicker`'s data source. Execute **Task 14 before Task 13** — the controller will dispatch them in that order (14 then 13) even though they are numbered and written in the order 13, 14 above.
 
 - [ ] **Step 1: Change `WorkoutForm`'s submit contract from `onSave` callback to a form `action`**
 
