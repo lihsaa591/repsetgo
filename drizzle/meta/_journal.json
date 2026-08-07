@@ -8,6 +8,13 @@
       "when": 1786123989984,
       "tag": "0000_zippy_cannonball",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786129178561,
+      "tag": "0001_bitter_madame_hydra",
+      "breakpoints": true
     }
   ]
 }
