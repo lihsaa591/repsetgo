@@ -15,6 +15,13 @@
       "when": 1786129178561,
       "tag": "0001_bitter_madame_hydra",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786130230619,
+      "tag": "0002_soft_sprite",
+      "breakpoints": true
     }
   ]
 }
