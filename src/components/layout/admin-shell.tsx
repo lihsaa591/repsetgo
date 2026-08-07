@@ -1,0 +1,84 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { ShieldCheck, Users, Settings, ArrowLeft, LogOut } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const navItems = [
+  { href: "/admin", label: "Users", icon: Users },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
+];
+
+export function AdminShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  function handleLogout() {
+    router.push("/");
+  }
+
+  return (
+    <div className="flex min-h-screen w-full">
+      <aside className="hidden w-60 flex-col border-r bg-muted/30 md:flex">
+        <div className="flex items-center gap-2 px-6 py-5">
+          <ShieldCheck className="h-6 w-6" />
+          <span className="text-lg font-semibold">Admin</span>
+        </div>
+        <nav className="flex flex-col gap-1 px-3">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="mt-auto flex flex-col gap-1 border-t px-3 py-4">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to app
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10"
+          >
+            <LogOut className="h-4 w-4" /> Log out
+          </button>
+        </div>
+      </aside>
+
+      <header className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b bg-background px-4 py-3 md:hidden">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-5 w-5" />
+          <span className="font-semibold">Admin</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="text-xs text-muted-foreground">
+            Exit
+          </Link>
+          <button onClick={handleLogout} className="text-xs text-destructive">
+            Log out
+          </button>
+        </div>
+      </header>
+
+      <main className="flex-1 pt-16 md:pt-0">
+        <div className="mx-auto w-full max-w-5xl px-4 py-6">{children}</div>
+      </main>
+    </div>
+  );
+}
