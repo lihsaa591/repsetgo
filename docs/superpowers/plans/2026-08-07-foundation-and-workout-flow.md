@@ -917,8 +917,8 @@ Note: `onDelete: "cascade"` on the child tables means deleting a `workoutLog` al
 - [ ] **Step 2: Generate and apply the migration**
 
 Run: `npx drizzle-kit generate`
-Run: `npx drizzle-kit migrate`
-Expected: `workout_logs`, `exercise_logs`, `sets` tables created, with indexes on `workout_logs.user_id`, `exercise_logs.workout_log_id`, `sets.exercise_log_id` (Drizzle creates an index automatically for `references()` foreign keys via the generated migration — confirm by inspecting the generated SQL file under `drizzle/`).
+Run: `set -a && source .env.local && set +a && npx drizzle-kit migrate` (drizzle-kit's CLI does not auto-load `.env.local`, only `.env`; the `source` step is required and prints no secrets)
+Expected: `workout_logs`, `exercise_logs`, `sets` tables created. **Correction (found during implementation):** Drizzle's `.references()` only emits a FOREIGN KEY constraint — it does NOT auto-create an index (Postgres doesn't auto-index FK columns). To satisfy the plan's Global Constraint, the three `pgTable` calls above must each use the callback form to add an explicit `index()` on their FK column (e.g. `pgTable("workout_logs", {...}, (table) => [index("workout_logs_user_id_idx").on(table.userId)])`), analogous to the pattern shown in Task 14. Confirm the generated migration SQL contains a `CREATE INDEX` statement per FK column, not just the FK constraint.
 
 - [ ] **Step 3: Commit**
 
@@ -1724,25 +1724,31 @@ git commit -m "feat: rewire WorkoutForm and log pages to use server actions"
 
 ```ts
 // src/lib/server/exercises/schema.ts
-import { pgTable, serial, integer, text } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, index } from "drizzle-orm/pg-core";
 import { users } from "@/lib/server/auth/schema";
 
-export const customExercises = pgTable("custom_exercises", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id),
-  name: text("name").notNull(),
-});
+export const customExercises = pgTable(
+  "custom_exercises",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id),
+    name: text("name").notNull(),
+  },
+  (table) => [index("custom_exercises_user_id_idx").on(table.userId)]
+);
 ```
+
+Note: Drizzle's `.references()` only creates a FOREIGN KEY constraint — it does NOT create a database index (Postgres does not auto-index FK columns). The explicit `index()` callback above is required to satisfy the plan's Global Constraint ("all foreign keys get an index at schema definition time"); this was discovered as a plan defect during Task 10 and is corrected here.
 
 Add `"./src/lib/server/exercises/schema.ts"` to the `schema` array in `drizzle.config.ts` (Task 2).
 
 - [ ] **Step 2: Generate and apply the migration**
 
 Run: `npx drizzle-kit generate`
-Run: `npx drizzle-kit migrate`
-Expected: `custom_exercises` table created with an index on `user_id`.
+Run: `set -a && source .env.local && set +a && npx drizzle-kit migrate` (drizzle-kit's CLI does not auto-load `.env.local`, only `.env` — discovered in Task 3/10; the `source` step is required and does not print any secret values)
+Expected: `custom_exercises` table created; the generated migration SQL contains one `CREATE INDEX` statement on `user_id`, alongside the FK constraint.
 
 - [ ] **Step 3: Implement queries and actions**
 
