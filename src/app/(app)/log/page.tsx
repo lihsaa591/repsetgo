@@ -1,12 +1,12 @@
-"use client";
-
-import { useRouter } from "next/navigation";
 import { WorkoutForm } from "@/components/workout-form";
-import { useWorkoutLogs } from "@/hooks/use-workout-logs";
+import { createWorkoutLog } from "@/lib/server/workouts/actions";
+import { getExerciseOptionsForUser } from "@/lib/server/exercises/queries";
+import { addCustomExercise } from "@/lib/server/exercises/actions";
+import { verifySession } from "@/lib/server/auth/dal";
 
-export default function LogWorkoutPage() {
-  const router = useRouter();
-  const { addLog } = useWorkoutLogs();
+export default async function LogWorkoutPage() {
+  const session = await verifySession();
+  const exerciseOptions = await getExerciseOptionsForUser(session.userId);
 
   return (
     <div className="flex flex-col gap-6">
@@ -18,10 +18,9 @@ export default function LogWorkoutPage() {
       </div>
 
       <WorkoutForm
-        onSave={(log) => {
-          addLog(log);
-          router.push("/history");
-        }}
+        exerciseOptions={exerciseOptions}
+        onAddCustomExercise={addCustomExercise}
+        action={createWorkoutLog}
       />
     </div>
   );

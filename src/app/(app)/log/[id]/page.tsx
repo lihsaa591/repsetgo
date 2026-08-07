@@ -1,21 +1,20 @@
-"use client";
-
-import { use } from "react";
-import { useRouter } from "next/navigation";
-import { WorkoutForm } from "@/components/workout-form";
-import { useWorkoutLogs } from "@/hooks/use-workout-logs";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { verifySession } from "@/lib/server/auth/dal";
+import { getWorkoutLogById } from "@/lib/server/workouts/queries";
+import { updateWorkoutLog } from "@/lib/server/workouts/actions";
+import { getExerciseOptionsForUser } from "@/lib/server/exercises/queries";
+import { addCustomExercise } from "@/lib/server/exercises/actions";
+import { WorkoutForm } from "@/components/workout-form";
+import { Button } from "@/components/ui/button";
 
-export default function EditWorkoutPage({
+export default async function EditWorkoutPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
-  const router = useRouter();
-  const { getLog, updateLog } = useWorkoutLogs();
-  const log = getLog(id);
+  const { id } = await params;
+  const session = await verifySession();
+  const log = await getWorkoutLogById(Number(id), session.userId);
 
   if (!log) {
     return (
@@ -28,6 +27,9 @@ export default function EditWorkoutPage({
     );
   }
 
+  const exerciseOptions = await getExerciseOptionsForUser(session.userId);
+  const updateAction = updateWorkoutLog.bind(null, log.id);
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -37,11 +39,9 @@ export default function EditWorkoutPage({
 
       <WorkoutForm
         initialLog={log}
-        onCancel={() => router.push("/history")}
-        onSave={(updated) => {
-          updateLog(id, updated);
-          router.push("/history");
-        }}
+        exerciseOptions={exerciseOptions}
+        onAddCustomExercise={addCustomExercise}
+        action={updateAction}
       />
     </div>
   );
