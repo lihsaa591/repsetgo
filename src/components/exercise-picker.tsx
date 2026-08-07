@@ -16,7 +16,7 @@ export function ExercisePicker({
   value: string;
   options: string[];
   onChange: (name: string) => void;
-  onAddCustom: (name: string) => void;
+  onAddCustom: (name: string) => void | Promise<void>;
 }) {
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
