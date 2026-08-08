@@ -17,3 +17,18 @@ export function checkRegistrationsOpen(
   }
   return { ok: true };
 }
+
+export function canModifyUser(
+  currentUserId: number,
+  targetUserId: number,
+  targetRole: "admin" | "user",
+  adminCount: number
+): { ok: true } | { ok: false; error: string } {
+  if (currentUserId === targetUserId) {
+    return { ok: false, error: "You can't do that to your own account." };
+  }
+  if (targetRole === "admin" && adminCount <= 1) {
+    return { ok: false, error: "You can't remove the last admin." };
+  }
+  return { ok: true };
+}
