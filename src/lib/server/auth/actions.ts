@@ -7,11 +7,19 @@ import { db } from "@/lib/server/db";
 import { users } from "./schema";
 import { createSessionCookie, deleteSessionCookie } from "./session";
 import { SignupSchema, LoginSchema, type AuthFormState } from "./validation";
+import { getAppSettings } from "@/lib/server/admin/queries";
+import { checkRegistrationsOpen } from "@/lib/server/admin/guards";
 
 export async function signup(
   _prevState: AuthFormState,
   formData: FormData
 ): Promise<AuthFormState> {
+  const settings = await getAppSettings();
+  const registrationCheck = checkRegistrationsOpen(settings);
+  if (!registrationCheck.ok) {
+    return { message: registrationCheck.error };
+  }
+
   const validated = SignupSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
