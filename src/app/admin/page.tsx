@@ -9,7 +9,46 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { adminUsers } from "@/lib/mock-data";
+type AdminUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: "admin" | "user";
+  joinedAt: string;
+  totalLogs: number;
+  lastActive: string;
+};
+
+// TODO(phase 2): replace with real admin data query — admin panel data wiring is out of scope for this task.
+const adminUsers: AdminUser[] = [
+  {
+    id: "u1",
+    name: "Aashil Bijukshe",
+    email: "aashil.bijukshe@themegrill.com",
+    role: "admin",
+    joinedAt: "2026-06-01",
+    totalLogs: 24,
+    lastActive: "2026-08-02",
+  },
+  {
+    id: "u2",
+    name: "Sara Thapa",
+    email: "sara.t@example.com",
+    role: "user",
+    joinedAt: "2026-06-15",
+    totalLogs: 14,
+    lastActive: "2026-08-01",
+  },
+  {
+    id: "u3",
+    name: "Rohit KC",
+    email: "rohit.kc@example.com",
+    role: "user",
+    joinedAt: "2026-07-10",
+    totalLogs: 3,
+    lastActive: "2026-07-29",
+  },
+];
 
 function initials(name: string) {
   return name

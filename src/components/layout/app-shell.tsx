@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Dumbbell,
   LayoutDashboard,
@@ -10,7 +10,7 @@ import {
   LogOut,
   ChevronsUpDown,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { logout } from "@/lib/server/auth/actions";
+import type { User } from "@/lib/server/auth/schema";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -26,13 +28,25 @@ const navItems = [
   { href: "/history", label: "History", icon: History },
 ];
 
-export function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const router = useRouter();
+function getInitials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
-  function handleLogout() {
-    router.push("/");
-  }
+export function AppShell({
+  children,
+  user,
+}: {
+  children: React.ReactNode;
+  user: User;
+}) {
+  const pathname = usePathname();
+  const initials = getInitials(user.name);
 
   return (
     <div className="flex min-h-screen w-full flex-col md:flex-row">
@@ -65,11 +79,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <DropdownMenu>
           <DropdownMenuTrigger className="mt-auto flex items-center gap-3 border-t px-6 py-4 text-left hover:bg-muted">
             <Avatar className="h-8 w-8">
-              <AvatarFallback>AB</AvatarFallback>
+              {user.avatarUrl ? <AvatarImage src={user.avatarUrl} alt={user.name} /> : null}
+              <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className="flex-1 text-sm">
-              <p className="font-medium leading-none">Aashil</p>
-              <p className="text-xs text-muted-foreground">Free plan</p>
+              <p className="font-medium leading-none">{user.name}</p>
+              <p className="text-xs text-muted-foreground">{user.email}</p>
             </div>
             <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
           </DropdownMenuTrigger>
@@ -78,10 +93,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               Account settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" />
-              Log out
-            </DropdownMenuItem>
+            <form action={logout}>
+              <DropdownMenuItem
+                variant="destructive"
+                render={<button type="submit" className="flex w-full items-center gap-2" />}
+              >
+                <LogOut className="h-4 w-4" />
+                Log out
+              </DropdownMenuItem>
+            </form>
           </DropdownMenuContent>
         </DropdownMenu>
       </aside>
@@ -95,7 +115,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <DropdownMenu>
           <DropdownMenuTrigger>
             <Avatar className="h-8 w-8">
-              <AvatarFallback>AB</AvatarFallback>
+              {user.avatarUrl ? <AvatarImage src={user.avatarUrl} alt={user.name} /> : null}
+              <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
@@ -103,10 +124,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               Account settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" />
-              Log out
-            </DropdownMenuItem>
+            <form action={logout}>
+              <DropdownMenuItem
+                variant="destructive"
+                render={<button type="submit" className="flex w-full items-center gap-2" />}
+              >
+                <LogOut className="h-4 w-4" />
+                Log out
+              </DropdownMenuItem>
+            </form>
           </DropdownMenuContent>
         </DropdownMenu>
       </header>
