@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Dumbbell, Users, Settings, ArrowLeft, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { logout } from "@/lib/server/auth/actions";
 
 const navItems = [
   { href: "/admin", label: "Users", icon: Users },
@@ -12,11 +13,6 @@ const navItems = [
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-
-  function handleLogout() {
-    router.push("/");
-  }
 
   return (
     <div className="flex min-h-screen w-full">
@@ -55,12 +51,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           >
             <ArrowLeft className="h-4 w-4" /> Back to app
           </Link>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10"
-          >
-            <LogOut className="h-4 w-4" /> Log out
-          </button>
+          <form action={logout}>
+            <button
+              type="submit"
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10"
+            >
+              <LogOut className="h-4 w-4" /> Log out
+            </button>
+          </form>
         </div>
       </aside>
 
@@ -76,9 +74,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <Link href="/dashboard" className="text-xs text-muted-foreground">
             Exit
           </Link>
-          <button onClick={handleLogout} className="text-xs text-destructive">
-            Log out
-          </button>
+          <form action={logout}>
+            <button type="submit" className="text-xs text-destructive">
+              Log out
+            </button>
+          </form>
         </div>
       </header>
 
