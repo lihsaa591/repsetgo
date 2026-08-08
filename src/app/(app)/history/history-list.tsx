@@ -34,6 +34,8 @@ const PAGE_SIZE = 10;
 
 export function HistoryList({ logs }: { logs: WorkoutLogWithDetails[] }) {
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [page, setPage] = useState(1);
 
   const totalPages = Math.max(1, Math.ceil(logs.length / PAGE_SIZE));
@@ -164,7 +166,12 @@ export function HistoryList({ logs }: { logs: WorkoutLogWithDetails[] }) {
 
       <Dialog
         open={pendingDeleteId !== null}
-        onOpenChange={(open) => !open && setPendingDeleteId(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDeleteId(null);
+            setDeleteError(null);
+          }
+        }}
       >
         <DialogContent>
           <DialogHeader>
@@ -174,20 +181,44 @@ export function HistoryList({ logs }: { logs: WorkoutLogWithDetails[] }) {
               from {pendingDeleteLog?.date}. This can&apos;t be undone.
             </DialogDescription>
           </DialogHeader>
+          {deleteError && (
+            <p role="alert" className="text-sm text-destructive">
+              {deleteError}
+            </p>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPendingDeleteId(null)}>
+            <Button
+              variant="outline"
+              disabled={deleting}
+              onClick={() => {
+                setPendingDeleteId(null);
+                setDeleteError(null);
+              }}
+            >
               Cancel
             </Button>
             <Button
               variant="destructive"
+              disabled={deleting}
               onClick={async () => {
-                if (pendingDeleteId) {
-                  await deleteWorkoutLog(pendingDeleteId);
+                if (!pendingDeleteId) return;
+                setDeleting(true);
+                setDeleteError(null);
+                try {
+                  const result = await deleteWorkoutLog(pendingDeleteId);
+                  if (result?.error) {
+                    setDeleteError(result.error);
+                    return;
+                  }
+                  setPendingDeleteId(null);
+                } catch {
+                  setDeleteError("Couldn't delete that workout. Try again.");
+                } finally {
+                  setDeleting(false);
                 }
-                setPendingDeleteId(null);
               }}
             >
-              Delete
+              {deleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { ExercisePicker } from "@/components/exercise-picker";
 import { Trash2, Plus } from "lucide-react";
 import type { WorkoutLogWithDetails } from "@/lib/server/workouts/queries";
+import type { WorkoutFormState } from "@/lib/server/workouts/validation";
+
+/** Today in the *viewer's* timezone — `toISOString()` would give the UTC day. */
+function todayLocalIso() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
 
 type DraftSet = { id: string; reps: string; weight: string };
 type DraftExercise = { id: string; exerciseName: string; sets: DraftSet[] };
@@ -43,12 +52,16 @@ export function WorkoutForm({
   initialLog?: WorkoutLogWithDetails;
   exerciseOptions: string[];
   onAddCustomExercise: (name: string) => void;
-  action: (formData: FormData) => void;
+  action: (
+    prevState: WorkoutFormState,
+    formData: FormData
+  ) => Promise<WorkoutFormState>;
   onCancel?: () => void;
 }) {
+  const [state, formAction, pending] = useActionState(action, undefined);
   const [workoutLabel, setWorkoutLabel] = useState(initialLog?.label ?? "Push Day");
   const [workoutDate, setWorkoutDate] = useState(
-    initialLog?.date ?? new Date().toISOString().slice(0, 10)
+    initialLog?.date ?? todayLocalIso()
   );
   const [notes, setNotes] = useState(initialLog?.notes ?? "");
   const [exercises, setExercises] = useState<DraftExercise[]>(() =>
@@ -111,7 +124,7 @@ export function WorkoutForm({
   }
 
   return (
-    <form action={action} className="flex flex-col gap-6">
+    <form action={formAction} className="flex flex-col gap-6">
       <input type="hidden" name="exerciseCount" value={exercises.length} />
       <Card>
         <CardContent className="flex flex-col gap-4">
@@ -221,15 +234,26 @@ export function WorkoutForm({
         <Plus className="h-4 w-4" /> Add exercise
       </Button>
 
-      <div className="sticky bottom-16 flex gap-2 md:bottom-4">
-        {onCancel && (
-          <Button variant="outline" type="button" className="flex-1" onClick={onCancel}>
-            Cancel
-          </Button>
+      <div className="sticky bottom-16 flex flex-col gap-2 md:bottom-4">
+        {state?.error && (
+          <p role="alert" className="text-sm text-destructive">
+            {state.error}
+          </p>
         )}
-        <Button type="submit" className="flex-1" size="lg">
-          {initialLog ? "Save Changes" : "Save Workout"}
-        </Button>
+        <div className="flex gap-2">
+          {onCancel && (
+            <Button variant="outline" type="button" className="flex-1" onClick={onCancel}>
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" className="flex-1" size="lg" disabled={pending}>
+            {pending
+              ? "Saving..."
+              : initialLog
+                ? "Save Changes"
+                : "Save Workout"}
+          </Button>
+        </div>
       </div>
     </form>
   );

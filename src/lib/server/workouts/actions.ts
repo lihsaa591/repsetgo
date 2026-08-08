@@ -6,54 +6,23 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/server/db";
 import { verifySession } from "@/lib/server/auth/dal";
 import { workoutLogs, exerciseLogs, sets } from "./schema";
+import {
+  parseWorkoutForm,
+  type ParsedExercise,
+  type WorkoutFormState,
+} from "./validation";
 
-type ParsedExercise = {
-  exerciseName: string;
-  order: number;
-  setsList: { setNumber: number; reps: number; weight: number }[];
-};
-
-function parseWorkoutForm(formData: FormData): {
-  label: string;
-  date: string;
-  notes: string | null;
-  exercises: ParsedExercise[];
-} {
-  const exerciseCount = Number(formData.get("exerciseCount") ?? 0);
-  const exercises: ParsedExercise[] = [];
-
-  for (let i = 0; i < exerciseCount; i++) {
-    const exerciseName = String(formData.get(`exercise-${i}-name`) ?? "").trim();
-    if (!exerciseName) continue;
-
-    const setCount = Number(formData.get(`exercise-${i}-setCount`) ?? 0);
-    const setsList = [];
-    for (let s = 0; s < setCount; s++) {
-      setsList.push({
-        setNumber: s + 1,
-        reps: Number(formData.get(`exercise-${i}-set-${s}-reps`) ?? 0),
-        weight: Number(formData.get(`exercise-${i}-set-${s}-weight`) ?? 0),
-      });
-    }
-
-    exercises.push({ exerciseName, order: i, setsList });
-  }
-
-  return {
-    label: String(formData.get("label") ?? "").trim(),
-    date: String(formData.get("date") ?? ""),
-    notes: String(formData.get("notes") ?? "").trim() || null,
-    exercises,
-  };
-}
-
-export async function createWorkoutLog(formData: FormData) {
+export async function createWorkoutLog(
+  _prevState: WorkoutFormState,
+  formData: FormData
+): Promise<WorkoutFormState> {
   const session = await verifySession();
-  const parsed = parseWorkoutForm(formData);
+  const result = parseWorkoutForm(formData);
 
-  if (!parsed.label || !parsed.date || parsed.exercises.length === 0) {
-    return { error: "Add a workout name, date, and at least one exercise." };
+  if (!result.ok) {
+    return { error: result.error };
   }
+  const parsed = result.data;
 
   const [log] = await db
     .insert(workoutLogs)
@@ -72,13 +41,18 @@ export async function createWorkoutLog(formData: FormData) {
   redirect("/history");
 }
 
-export async function updateWorkoutLog(id: number, formData: FormData) {
+export async function updateWorkoutLog(
+  id: number,
+  _prevState: WorkoutFormState,
+  formData: FormData
+): Promise<WorkoutFormState> {
   const session = await verifySession();
-  const parsed = parseWorkoutForm(formData);
+  const result = parseWorkoutForm(formData);
 
-  if (!parsed.label || !parsed.date || parsed.exercises.length === 0) {
-    return { error: "Add a workout name, date, and at least one exercise." };
+  if (!result.ok) {
+    return { error: result.error };
   }
+  const parsed = result.data;
 
   const [existing] = await db
     .select({ id: workoutLogs.id })

@@ -82,8 +82,11 @@ async function attachDetails(log: {
   };
 }
 
-export async function getSuggestionForUser(userId: number): Promise<Suggestion> {
-  const logs = await getWorkoutLogsForUser(userId);
+/**
+ * Pure — callers pass logs they have already fetched so the dashboard doesn't
+ * run the whole log/exercise/set query tree twice.
+ */
+export function getSuggestionFromLogs(logs: WorkoutLogWithDetails[]): Suggestion {
   return suggestNextWorkout(
     logs.map((log) => ({
       label: log.label,

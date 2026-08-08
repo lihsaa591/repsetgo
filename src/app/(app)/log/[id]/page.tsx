@@ -14,7 +14,13 @@ export default async function EditWorkoutPage({
 }) {
   const { id } = await params;
   const session = await verifySession();
-  const log = await getWorkoutLogById(Number(id), session.userId);
+
+  // Number("abc") is NaN, which Postgres rejects with an error rather than
+  // returning zero rows — guard before it ever reaches the query.
+  const numericId = Number(id);
+  const log = Number.isInteger(numericId)
+    ? await getWorkoutLogById(numericId, session.userId)
+    : null;
 
   if (!log) {
     return (

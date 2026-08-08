@@ -3,15 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { verifySession } from "@/lib/server/auth/dal";
-import { getWorkoutLogsForUser, getSuggestionForUser } from "@/lib/server/workouts/queries";
+import { getWorkoutLogsForUser, getSuggestionFromLogs } from "@/lib/server/workouts/queries";
 import { Flame, TrendingUp, CalendarDays } from "lucide-react";
 
 export default async function DashboardPage() {
   const session = await verifySession();
-  const [workoutLogs, suggestion] = await Promise.all([
-    getWorkoutLogsForUser(session.userId),
-    getSuggestionForUser(session.userId),
-  ]);
+  const workoutLogs = await getWorkoutLogsForUser(session.userId);
+  const suggestion = getSuggestionFromLogs(workoutLogs);
 
   const totalSetsThisWeek = workoutLogs
     .flatMap((w) => w.exercises)
