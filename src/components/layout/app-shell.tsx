@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import { logout } from "@/lib/server/auth/actions";
 import type { SafeUser } from "@/lib/server/auth/dal";
+import { NavProgressProvider, NavProgressReporter } from "@/components/layout/nav-progress";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -52,6 +53,7 @@ export function AppShell({
   const avatarSrc = user.avatarUrl ? `/api/avatar/${user.id}` : undefined;
 
   return (
+    <NavProgressProvider>
     <div className="flex min-h-screen w-full flex-col md:flex-row">
       {/* Desktop sidebar */}
       <aside className="hidden md:flex md:w-60 md:flex-col md:border-r md:bg-muted/30">
@@ -66,6 +68,7 @@ export function AppShell({
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={false}
                 className={cn(
                   "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   isActive
@@ -73,6 +76,7 @@ export function AppShell({
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
+                <NavProgressReporter id={item.href} />
                 <item.icon className="h-4 w-4" />
                 {item.label}
               </Link>
@@ -92,8 +96,9 @@ export function AppShell({
             <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuItem render={<Link href="/settings" />}>
+            <DropdownMenuItem render={<Link href="/settings" prefetch={false} />}>
               Account settings
+              <NavProgressReporter id="/settings" />
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <form action={logout}>
@@ -123,8 +128,9 @@ export function AppShell({
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem render={<Link href="/settings" />}>
+            <DropdownMenuItem render={<Link href="/settings" prefetch={false} />}>
               Account settings
+              <NavProgressReporter id="/settings" />
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <form action={logout}>
@@ -152,11 +158,13 @@ export function AppShell({
             <Link
               key={item.href}
               href={item.href}
+              prefetch={false}
               className={cn(
                 "flex flex-1 flex-col items-center gap-1 py-2 text-xs font-medium",
                 isActive ? "text-primary" : "text-muted-foreground"
               )}
             >
+              <NavProgressReporter id={item.href} />
               <item.icon className="h-5 w-5" />
               {item.label}
             </Link>
@@ -164,5 +172,6 @@ export function AppShell({
         })}
       </nav>
     </div>
+    </NavProgressProvider>
   );
 }
