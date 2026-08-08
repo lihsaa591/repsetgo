@@ -102,11 +102,18 @@ function NavProgressBar({ active }: { active: boolean }) {
     <div
       aria-hidden
       className={cn(
-        "fixed inset-x-0 top-0 z-[60] h-[3px] bg-primary transition-[width,opacity] ease-out",
+        "fixed inset-x-0 top-0 z-[60] h-[3px] transition-[width,opacity] ease-out",
         active ? "duration-[4000ms]" : "duration-200",
         visible ? "opacity-100" : "opacity-0"
       )}
-      style={{ width: `${widthPercent}%` }}
+      style={{
+        width: `${widthPercent}%`,
+        // Fixed, punchy accent independent of the theme's muted --primary —
+        // a progress bar needs to read clearly on both light and dark
+        // backgrounds regardless of brand color.
+        backgroundColor: "#3b82f6",
+        boxShadow: "0 0 8px 1px rgba(59, 130, 246, 0.6)",
+      }}
     />
   );
 }
