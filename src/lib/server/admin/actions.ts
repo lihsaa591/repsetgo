@@ -2,11 +2,13 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
 import { db } from "@/lib/server/db";
 import { users } from "@/lib/server/auth/schema";
 import { requireAdmin } from "@/lib/server/auth/dal";
 import { appSettings } from "./schema";
 import { canChangeRole } from "./guards";
+import { CreateUserSchema, type CreateUserFormState } from "./validation";
 
 export async function setUserRole(
   _prevState: { error: string } | undefined,
@@ -51,4 +53,35 @@ export async function setRegistrationsOpen(
 
   revalidatePath("/admin/settings");
   return undefined;
+}
+
+export async function createUserAsAdmin(
+  _prevState: CreateUserFormState,
+  formData: FormData
+): Promise<CreateUserFormState> {
+  await requireAdmin();
+
+  const validated = CreateUserSchema.safeParse({
+    name: formData.get("name"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+    role: formData.get("role"),
+  });
+
+  if (!validated.success) {
+    return { errors: validated.error.flatten().fieldErrors };
+  }
+
+  const { name, email, password, role } = validated.data;
+
+  const [existing] = await db.select().from(users).where(eq(users.email, email));
+  if (existing) {
+    return { message: "An account with this email already exists." };
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  await db.insert(users).values({ name, email, passwordHash, role });
+
+  revalidatePath("/admin");
+  return { success: true };
 }
