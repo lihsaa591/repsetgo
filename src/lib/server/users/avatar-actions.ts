@@ -34,13 +34,17 @@ export async function uploadAvatar(
     .from(users)
     .where(eq(users.id, session.userId));
 
+  // Private store: the blob's own URL requires the read-write token to fetch,
+  // so it's never given to the browser directly. We store its pathname and
+  // serve it through /api/avatar/[userId] (see that route), which holds the
+  // token server-side.
   const blob = await put(`avatars/${session.userId}-${Date.now()}`, file, {
-    access: "public",
+    access: "private",
   });
 
   await db
     .update(users)
-    .set({ avatarUrl: blob.url })
+    .set({ avatarUrl: blob.pathname })
     .where(eq(users.id, session.userId));
 
   if (current?.avatarUrl) {
@@ -50,5 +54,7 @@ export async function uploadAvatar(
   }
 
   revalidatePath("/settings");
-  return { url: blob.url };
+  // Cache-bust so the browser re-fetches the new image immediately instead
+  // of reusing whatever it has cached for this same serving URL.
+  return { url: `/api/avatar/${session.userId}?v=${Date.now()}` };
 }

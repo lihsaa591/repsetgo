@@ -42,10 +42,11 @@ export function AccountSettingsForm({ user }: { user: SafeUser }) {
     undefined
   );
 
+  // avatarUrl stores a private Blob pathname, not a fetchable URL — the
+  // browser reaches it through our own authenticated serving route instead.
   const avatarUrl =
     (avatarState && "url" in avatarState ? avatarState.url : undefined) ??
-    user.avatarUrl ??
-    undefined;
+    (user.avatarUrl ? `/api/avatar/${user.id}` : undefined);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

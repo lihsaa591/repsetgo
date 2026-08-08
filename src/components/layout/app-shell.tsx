@@ -47,6 +47,9 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const initials = getInitials(user.name);
+  // avatarUrl stores a private Blob pathname, not a fetchable URL — the
+  // browser reaches it through our own authenticated serving route instead.
+  const avatarSrc = user.avatarUrl ? `/api/avatar/${user.id}` : undefined;
 
   return (
     <div className="flex min-h-screen w-full flex-col md:flex-row">
@@ -79,7 +82,7 @@ export function AppShell({
         <DropdownMenu>
           <DropdownMenuTrigger className="mt-auto flex items-center gap-3 border-t px-6 py-4 text-left hover:bg-muted">
             <Avatar className="h-8 w-8">
-              {user.avatarUrl ? <AvatarImage src={user.avatarUrl} alt={user.name} /> : null}
+              {avatarSrc ? <AvatarImage src={avatarSrc} alt={user.name} /> : null}
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className="flex-1 text-sm">
@@ -115,7 +118,7 @@ export function AppShell({
         <DropdownMenu>
           <DropdownMenuTrigger>
             <Avatar className="h-8 w-8">
-              {user.avatarUrl ? <AvatarImage src={user.avatarUrl} alt={user.name} /> : null}
+              {avatarSrc ? <AvatarImage src={avatarSrc} alt={user.name} /> : null}
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
