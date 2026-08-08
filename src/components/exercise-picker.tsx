@@ -24,17 +24,29 @@ export function ExercisePicker({
 
   useEffect(() => setQuery(value), [value]);
 
+  function exactMatchFor(name: string) {
+    return options.some((o) => o.toLowerCase() === name.trim().toLowerCase());
+  }
+
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (!containerRef.current?.contains(e.target as Node)) {
         setOpen(false);
-        commit(query);
+        // Clicking away must never create a custom exercise — a half-typed
+        // name like "Ben" would otherwise be persisted forever. Adding is
+        // explicit only: the Add "…" item or pressing Enter.
+        const trimmed = query.trim();
+        if (exactMatchFor(trimmed)) {
+          onChange(trimmed);
+        } else {
+          setQuery(value);
+        }
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [query, value]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -53,10 +65,6 @@ export function ExercisePicker({
       onAddCustom(trimmed);
     }
     onChange(trimmed);
-  }
-
-  function exactMatchFor(name: string) {
-    return options.some((o) => o.toLowerCase() === name.trim().toLowerCase());
   }
 
   function selectOption(name: string) {

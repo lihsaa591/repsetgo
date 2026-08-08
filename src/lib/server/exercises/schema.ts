@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, index } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, index, unique } from "drizzle-orm/pg-core";
 import { users } from "@/lib/server/auth/schema";
 
 export const customExercises = pgTable(
@@ -10,5 +10,8 @@ export const customExercises = pgTable(
       .references(() => users.id),
     name: text("name").notNull(),
   },
-  (table) => [index("custom_exercises_user_id_idx").on(table.userId)]
+  (table) => [
+    index("custom_exercises_user_id_idx").on(table.userId),
+    unique("custom_exercises_user_id_name_unique").on(table.userId, table.name),
+  ]
 );

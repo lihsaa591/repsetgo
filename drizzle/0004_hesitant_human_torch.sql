@@ -1,0 +1,1 @@
+ALTER TABLE "custom_exercises" ADD CONSTRAINT "custom_exercises_user_id_name_unique" UNIQUE("user_id","name");
