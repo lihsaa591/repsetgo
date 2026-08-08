@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getAllUsersWithStats } from "@/lib/server/admin/queries";
 import { verifySession } from "@/lib/server/auth/dal";
 import { UsersList } from "./users-list";
+import { AddUserDialog } from "./add-user-dialog";
 
 export default async function AdminUsersPage() {
   const [users, session] = await Promise.all([
@@ -18,11 +19,14 @@ export default async function AdminUsersPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Users</h1>
-        <p className="text-sm text-muted-foreground">
-          Everyone registered on RepSetGo
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold">Users</h1>
+          <p className="text-sm text-muted-foreground">
+            Everyone registered on RepSetGo
+          </p>
+        </div>
+        <AddUserDialog />
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
