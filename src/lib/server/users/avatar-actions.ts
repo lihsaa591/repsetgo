@@ -9,6 +9,10 @@ import { verifySession } from "@/lib/server/auth/dal";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2MB, matches the UI's stated limit
 
+// Explicit allowlist: `image/*` would admit image/svg+xml, which can carry
+// active content and is served publicly from the blob store.
+const ALLOWED_AVATAR_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
+
 export async function uploadAvatar(
   formData: FormData
 ): Promise<{ error: string } | { url: string }> {
@@ -18,8 +22,8 @@ export async function uploadAvatar(
   if (!(file instanceof File) || file.size === 0) {
     return { error: "Choose an image file to upload." };
   }
-  if (!file.type.startsWith("image/")) {
-    return { error: "File must be an image." };
+  if (!(ALLOWED_AVATAR_TYPES as readonly string[]).includes(file.type)) {
+    return { error: "Image must be a PNG, JPEG, or WebP file." };
   }
   if (file.size > MAX_AVATAR_BYTES) {
     return { error: "Image must be 2MB or smaller." };

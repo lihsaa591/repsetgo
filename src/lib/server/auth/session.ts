@@ -7,6 +7,17 @@ export type SessionPayload = {
   role: "admin" | "user";
 };
 
+const MIN_SECRET_LENGTH = 32;
+
+if (!process.env.SESSION_SECRET) {
+  throw new Error("SESSION_SECRET is not set");
+}
+if (process.env.SESSION_SECRET.length < MIN_SECRET_LENGTH) {
+  throw new Error(
+    `SESSION_SECRET must be at least ${MIN_SECRET_LENGTH} characters`
+  );
+}
+
 const encodedKey = () => new TextEncoder().encode(process.env.SESSION_SECRET);
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 

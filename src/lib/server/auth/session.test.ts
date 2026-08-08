@@ -1,9 +1,12 @@
-import { describe, expect, it, beforeAll } from "vitest";
-import { encrypt, decrypt } from "./session";
+import { describe, expect, it, vi } from "vitest";
 
-beforeAll(() => {
+// session.ts validates SESSION_SECRET at module load, so this must run before
+// the import below — vi.hoisted is lifted above the hoisted import statements.
+vi.hoisted(() => {
   process.env.SESSION_SECRET = "test-secret-at-least-32-characters-long";
 });
+
+import { encrypt, decrypt } from "./session";
 
 describe("session encrypt/decrypt", () => {
   it("round-trips a valid payload", async () => {

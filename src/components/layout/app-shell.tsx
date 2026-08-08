@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { logout } from "@/lib/server/auth/actions";
-import type { User } from "@/lib/server/auth/schema";
+import type { SafeUser } from "@/lib/server/auth/dal";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -43,7 +43,7 @@ export function AppShell({
   user,
 }: {
   children: React.ReactNode;
-  user: User;
+  user: SafeUser;
 }) {
   const pathname = usePathname();
   const initials = getInitials(user.name);

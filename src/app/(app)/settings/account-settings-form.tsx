@@ -17,7 +17,7 @@ import {
 import { Camera } from "lucide-react";
 import { updateProfile } from "@/lib/server/users/actions";
 import { uploadAvatar } from "@/lib/server/users/avatar-actions";
-import type { User } from "@/lib/server/auth/schema";
+import type { SafeUser } from "@/lib/server/auth/dal";
 
 function initials(name: string) {
   return name
@@ -28,7 +28,7 @@ function initials(name: string) {
     .join("");
 }
 
-export function AccountSettingsForm({ user }: { user: User }) {
+export function AccountSettingsForm({ user }: { user: SafeUser }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const avatarFormRef = useRef<HTMLFormElement>(null);
 
@@ -54,47 +54,59 @@ export function AccountSettingsForm({ user }: { user: User }) {
   }
 
   return (
-    <form action={profileAction} className="flex flex-col gap-6">
+    // The avatar upload is its own <form>, so it must be a sibling of the
+    // profile <form> — browsers drop nested forms when parsing the HTML.
+    <div className="flex flex-col gap-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Profile</CardTitle>
+          <CardTitle className="text-base">Photo</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center gap-4">
+        <CardContent>
+          <form
+            ref={avatarFormRef}
+            action={avatarAction}
+            className="flex items-center gap-4"
+          >
             <Avatar className="h-16 w-16">
               {avatarUrl && <AvatarImage src={avatarUrl} alt="Profile photo" />}
               <AvatarFallback>{initials(user.name)}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col gap-1">
-              <form ref={avatarFormRef} action={avatarAction}>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="w-fit"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Camera className="h-3.5 w-3.5" />
-                  Change photo
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  name="avatar"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              </form>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-fit"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Camera className="h-3.5 w-3.5" />
+                Change photo
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                name="avatar"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={handleFileChange}
+              />
               <p className="text-xs text-muted-foreground">
-                JPG or PNG, up to 2MB
+                JPG, PNG or WebP, up to 2MB
               </p>
               {avatarState && "error" in avatarState && (
                 <p className="text-xs text-destructive">{avatarState.error}</p>
               )}
             </div>
-          </div>
+          </form>
+        </CardContent>
+      </Card>
 
+      <form action={profileAction} className="flex flex-col gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Profile</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="name">Name</Label>
             <Input id="name" name="name" defaultValue={user.name} />
@@ -230,6 +242,7 @@ export function AccountSettingsForm({ user }: { user: User }) {
       <Button type="submit" disabled={profilePending} className="w-fit">
         {profilePending ? "Saving..." : "Save changes"}
       </Button>
-    </form>
+      </form>
+    </div>
   );
 }
