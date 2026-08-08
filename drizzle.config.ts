@@ -5,6 +5,7 @@ export default defineConfig({
     "./src/lib/server/auth/schema.ts",
     "./src/lib/server/workouts/schema.ts",
     "./src/lib/server/exercises/schema.ts",
+    "./src/lib/server/admin/schema.ts",
   ],
   out: "./drizzle",
   dialect: "postgresql",
