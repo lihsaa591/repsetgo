@@ -1,15 +1,18 @@
-"use client";
-
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { suggestedToday } from "@/lib/mock-data";
-import { useWorkoutLogs } from "@/hooks/use-workout-logs";
+import { verifySession } from "@/lib/server/auth/dal";
+import { getWorkoutLogsForUser, getSuggestionForUser } from "@/lib/server/workouts/queries";
 import { Flame, TrendingUp, CalendarDays } from "lucide-react";
 
-export default function DashboardPage() {
-  const { logs: workoutLogs } = useWorkoutLogs();
+export default async function DashboardPage() {
+  const session = await verifySession();
+  const [workoutLogs, suggestion] = await Promise.all([
+    getWorkoutLogsForUser(session.userId),
+    getSuggestionForUser(session.userId),
+  ]);
+
   const totalSetsThisWeek = workoutLogs
     .flatMap((w) => w.exercises)
     .flatMap((e) => e.sets).length;
@@ -23,7 +26,6 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Today's suggested workout */}
       <Card className="border-primary/30 bg-primary/5">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -32,12 +34,12 @@ export default function DashboardPage() {
               Today&apos;s Suggested Workout
             </CardTitle>
           </div>
-          <Badge variant="secondary">{suggestedToday.label}</Badge>
+          <Badge variant="secondary">{suggestion.label}</Badge>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <p className="text-sm text-muted-foreground">{suggestedToday.reason}</p>
+          <p className="text-sm text-muted-foreground">{suggestion.reason}</p>
           <div className="flex flex-wrap gap-2">
-            {suggestedToday.exercises.map((ex) => (
+            {suggestion.exercises.map((ex) => (
               <Badge key={ex} variant="outline">
                 {ex}
               </Badge>
@@ -49,7 +51,6 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Quick stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="flex flex-col gap-1">
@@ -70,14 +71,11 @@ export default function DashboardPage() {
         <Card className="col-span-2 sm:col-span-1">
           <CardContent className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Last workout</span>
-            <span className="text-2xl font-semibold">
-              {workoutLogs[0]?.label ?? "—"}
-            </span>
+            <span className="text-2xl font-semibold">{workoutLogs[0]?.label ?? "—"}</span>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent activity */}
       <div>
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-lg font-medium">Recent Logs</h2>
