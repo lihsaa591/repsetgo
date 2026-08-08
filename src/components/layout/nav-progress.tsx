@@ -108,11 +108,10 @@ function NavProgressBar({ active }: { active: boolean }) {
       )}
       style={{
         width: `${widthPercent}%`,
-        // Fixed, punchy accent independent of the theme's muted --primary —
-        // a progress bar needs to read clearly on both light and dark
-        // backgrounds regardless of brand color.
-        backgroundColor: "#3b82f6",
-        boxShadow: "0 0 8px 1px rgba(59, 130, 246, 0.6)",
+        // Same brand hue as --primary, but a --nav-progress token tuned
+        // brighter/more saturated so a 3px bar still reads clearly.
+        backgroundColor: "var(--nav-progress)",
+        boxShadow: "0 0 8px 1px color-mix(in oklch, var(--nav-progress) 60%, transparent)",
       }}
     />
   );
