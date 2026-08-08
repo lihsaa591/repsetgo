@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ShieldCheck, Users, Settings, ArrowLeft, LogOut } from "lucide-react";
+import { Dumbbell, Users, Settings, ArrowLeft, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -22,8 +22,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen w-full">
       <aside className="hidden w-60 flex-col border-r bg-muted/30 md:flex">
         <div className="flex items-center gap-2 px-6 py-5">
-          <ShieldCheck className="h-6 w-6" />
-          <span className="text-lg font-semibold">Admin</span>
+          <Dumbbell className="h-6 w-6" />
+          <div className="flex flex-col leading-tight">
+            <span className="text-lg font-semibold">RepSetGo</span>
+            <span className="text-xs text-muted-foreground">Admin</span>
+          </div>
         </div>
         <nav className="flex flex-col gap-1 px-3">
           {navItems.map((item) => {
@@ -63,8 +66,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       <header className="fixed inset-x-0 top-0 z-40 flex items-center justify-between border-b bg-background px-4 py-3 md:hidden">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5" />
-          <span className="font-semibold">Admin</span>
+          <Dumbbell className="h-5 w-5" />
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-semibold">RepSetGo</span>
+            <span className="text-[10px] text-muted-foreground">Admin</span>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="text-xs text-muted-foreground">
