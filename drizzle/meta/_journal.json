@@ -43,6 +43,13 @@
       "when": 1786207678086,
       "tag": "0005_quiet_anthem",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786215610510,
+      "tag": "0006_peaceful_hydra",
+      "breakpoints": true
     }
   ]
 }

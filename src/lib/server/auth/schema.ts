@@ -6,6 +6,7 @@ import {
   varchar,
   numeric,
   date,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -16,6 +17,7 @@ export const users = pgTable("users", {
   role: text("role", { enum: ["admin", "user"] })
     .notNull()
     .default("user"),
+  isActive: boolean("is_active").notNull().default(true),
   heightCm: numeric("height_cm"),
   weightKg: numeric("weight_kg"),
   dob: date("dob"),
