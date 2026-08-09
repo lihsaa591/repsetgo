@@ -9,6 +9,7 @@ import { createSessionCookie, deleteSessionCookie } from "./session";
 import { SignupSchema, LoginSchema, type AuthFormState } from "./validation";
 import { getAppSettings } from "@/lib/server/admin/queries";
 import { checkRegistrationsOpen } from "@/lib/server/admin/guards";
+import { sendWelcomeEmail } from "@/lib/server/email/send-welcome-email";
 
 export async function signup(
   _prevState: AuthFormState,
@@ -44,6 +45,7 @@ export async function signup(
     .returning({ id: users.id, role: users.role });
 
   await createSessionCookie({ userId: user.id, role: user.role });
+  sendWelcomeEmail(email, name);
   redirect("/dashboard");
 }
 
