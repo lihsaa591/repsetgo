@@ -87,11 +87,19 @@ export function WorkoutForm({
 
   function addSet(exerciseId: string) {
     setExercises((prev) =>
-      prev.map((e) =>
-        e.id === exerciseId
-          ? { ...e, sets: [...e.sets, { id: nextId(), reps: "", weight: "" }] }
-          : e
-      )
+      prev.map((e) => {
+        if (e.id !== exerciseId) return e;
+        // Pre-fill from the previous set — most sets repeat the same
+        // reps/weight, so this saves retyping in the common case. Still
+        // just a default; the new row is fully editable.
+        const lastSet = e.sets[e.sets.length - 1];
+        const newSet = {
+          id: nextId(),
+          reps: lastSet?.reps ?? "",
+          weight: lastSet?.weight ?? "",
+        };
+        return { ...e, sets: [...e.sets, newSet] };
+      })
     );
   }
 
