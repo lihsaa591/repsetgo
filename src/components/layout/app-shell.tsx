@@ -71,7 +71,6 @@ export function AppShell({
                 <Link
                   key={item.href}
                   href={item.href}
-                  prefetch={false}
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                     isActive
@@ -102,7 +101,7 @@ export function AppShell({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuItem
-                render={<Link href="/settings" prefetch={false} />}
+                render={<Link href="/settings" />}
               >
                 Account settings
                 <NavProgressReporter id="/settings" />
@@ -143,7 +142,7 @@ export function AppShell({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem
-                render={<Link href="/settings" prefetch={false} />}
+                render={<Link href="/settings" />}
               >
                 Account settings
                 <NavProgressReporter id="/settings" />
@@ -179,7 +178,6 @@ export function AppShell({
               <Link
                 key={item.href}
                 href={item.href}
-                prefetch={false}
                 className={cn(
                   "flex flex-1 flex-col items-center gap-1 py-2 text-xs font-medium",
                   isActive ? "text-primary" : "text-muted-foreground",
