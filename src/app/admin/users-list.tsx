@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useActionState } from "react";
 import {
   Card,
@@ -33,6 +33,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { Trash2 } from "lucide-react";
 import { setUserRole, setUserActive, deleteUser } from "@/lib/server/admin/actions";
 import type { AdminUserRow } from "@/lib/server/admin/queries";
@@ -114,18 +115,20 @@ export function UsersList({
                     {user.lastLogDate ?? "—"}
                   </TableCell>
                   <TableCell>
-                    <RoleControl
-                      userId={user.id}
-                      currentRole={user.role}
-                      isSelf={user.id === currentUserId}
-                    />
-                    <DeleteUserControl
-                      userId={user.id}
-                      userName={user.name}
-                      isSelf={user.id === currentUserId}
-                      totalLogs={user.totalLogs}
-                      customExerciseCount={user.customExerciseCount}
-                    />
+                    <div className="flex items-center justify-end gap-1">
+                      <DeleteUserControl
+                        userId={user.id}
+                        userName={user.name}
+                        isSelf={user.id === currentUserId}
+                        totalLogs={user.totalLogs}
+                        customExerciseCount={user.customExerciseCount}
+                      />
+                      <RoleControl
+                        userId={user.id}
+                        currentRole={user.role}
+                        isSelf={user.id === currentUserId}
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -228,27 +231,25 @@ function ActiveControl({
   isActive: boolean;
   isSelf: boolean;
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [state, action, pending] = useActionState(setUserActive, undefined);
   const nextActive = !isActive;
   const disabled = pending || isSelf;
 
   return (
     <div className="flex flex-col items-start gap-1">
-      <Badge variant={isActive ? "secondary" : "destructive"}>
-        {isActive ? "Active" : "Inactive"}
-      </Badge>
-      <form action={action}>
+      <form ref={formRef} action={action} className="flex items-center gap-2">
         <input type="hidden" name="userId" value={userId} />
         <input type="hidden" name="isActive" value={String(nextActive)} />
-        <Button
-          type="submit"
-          variant="outline"
-          size="sm"
+        <Switch
+          checked={isActive}
           disabled={disabled}
           title={isSelf ? "You can't do that to your own account." : undefined}
-        >
-          {nextActive ? "Activate" : "Deactivate"}
-        </Button>
+          onCheckedChange={() => formRef.current?.requestSubmit()}
+        />
+        <Badge variant={isActive ? "secondary" : "destructive"}>
+          {isActive ? "Active" : "Inactive"}
+        </Badge>
       </form>
       {state?.error && (
         <p className="text-xs text-destructive" role="alert">
@@ -279,13 +280,14 @@ function DeleteUserControl({
     <Dialog open={open} onOpenChange={setOpen}>
       <Button
         variant="ghost"
-        size="sm"
+        size="icon"
         className="text-destructive"
         disabled={isSelf}
-        title={isSelf ? "You can't do that to your own account." : undefined}
+        title={isSelf ? "You can't do that to your own account." : "Delete user"}
         onClick={() => setOpen(true)}
       >
-        <Trash2 className="h-3.5 w-3.5" /> Delete
+        <Trash2 className="h-3.5 w-3.5" />
+        <span className="sr-only">Delete user</span>
       </Button>
       <DialogContent>
         <DialogHeader>
