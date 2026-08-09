@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/server/db";
@@ -10,6 +10,7 @@ import { workoutLogs } from "@/lib/server/workouts/schema";
 import { customExercises } from "@/lib/server/exercises/schema";
 import { appSettings } from "./schema";
 import { canChangeRole, canModifyUser } from "./guards";
+import { notLastAdmin } from "./last-admin-guard";
 import { getAdminCount } from "./queries";
 import { CreateUserSchema, type CreateUserFormState } from "./validation";
 
@@ -117,7 +118,22 @@ export async function setUserActive(
     return { error: check.error };
   }
 
-  await db.update(users).set({ isActive }).where(eq(users.id, targetUserId));
+  const updated = await db
+    .update(users)
+    .set({ isActive })
+    .where(
+      isActive
+        ? eq(users.id, targetUserId)
+        : and(eq(users.id, targetUserId), notLastAdmin(targetUserId))
+    )
+    .returning({ id: users.id });
+
+  if (updated.length === 0) {
+    // The row existed at the SELECT above, so a zero-row update means the
+    // atomic guard fired: this would have deactivated the last admin.
+    return { error: "You can't remove the last admin." };
+  }
+
   revalidatePath("/admin");
   return undefined;
 }
@@ -152,9 +168,30 @@ export async function deleteUser(
   // workout_logs -> exercise_logs -> sets cascade via their existing FK
   // cascade (see src/lib/server/workouts/schema.ts); custom_exercises has
   // no such cascade, so it's deleted explicitly here.
-  await db.delete(workoutLogs).where(eq(workoutLogs.userId, targetUserId));
-  await db.delete(customExercises).where(eq(customExercises.userId, targetUserId));
-  await db.delete(users).where(eq(users.id, targetUserId));
+  //
+  // neon-http has no interactive transactions (db.transaction() throws), but
+  // db.batch() sends the statements as one atomic HTTP transaction, so the
+  // deletes can no longer be left half-applied.
+  const guard = notLastAdmin(targetUserId);
+  const [, , deleted] = await db.batch([
+    db
+      .delete(workoutLogs)
+      .where(and(eq(workoutLogs.userId, targetUserId), guard)),
+    db
+      .delete(customExercises)
+      .where(and(eq(customExercises.userId, targetUserId), guard)),
+    db
+      .delete(users)
+      .where(and(eq(users.id, targetUserId), guard))
+      .returning({ id: users.id }),
+  ]);
+
+  if (deleted.length === 0) {
+    // The row existed at the SELECT above, so a zero-row delete means the
+    // atomic guard fired: this would have removed the last admin. The guard is
+    // on all three statements, so nothing was deleted at all.
+    return { error: "You can't remove the last admin." };
+  }
 
   revalidatePath("/admin");
   return undefined;
