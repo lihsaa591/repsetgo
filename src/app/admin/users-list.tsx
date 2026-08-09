@@ -25,7 +25,16 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { setUserRole } from "@/lib/server/admin/actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Trash2 } from "lucide-react";
+import { setUserRole, setUserActive, deleteUser } from "@/lib/server/admin/actions";
 import type { AdminUserRow } from "@/lib/server/admin/queries";
 
 const PAGE_SIZE = 10;
@@ -64,6 +73,7 @@ export function UsersList({
               <TableRow>
                 <TableHead>User</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
                 <TableHead>Logs</TableHead>
                 <TableHead>Last active</TableHead>
@@ -89,6 +99,13 @@ export function UsersList({
                       {user.role}
                     </Badge>
                   </TableCell>
+                  <TableCell>
+                    <ActiveControl
+                      userId={user.id}
+                      isActive={user.isActive}
+                      isSelf={user.id === currentUserId}
+                    />
+                  </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {user.joinedAt}
                   </TableCell>
@@ -101,6 +118,13 @@ export function UsersList({
                       userId={user.id}
                       currentRole={user.role}
                       isSelf={user.id === currentUserId}
+                    />
+                    <DeleteUserControl
+                      userId={user.id}
+                      userName={user.name}
+                      isSelf={user.id === currentUserId}
+                      totalLogs={user.totalLogs}
+                      customExerciseCount={user.customExerciseCount}
                     />
                   </TableCell>
                 </TableRow>
@@ -192,5 +216,104 @@ function RoleControl({
         </p>
       )}
     </div>
+  );
+}
+
+function ActiveControl({
+  userId,
+  isActive,
+  isSelf,
+}: {
+  userId: number;
+  isActive: boolean;
+  isSelf: boolean;
+}) {
+  const [state, action, pending] = useActionState(setUserActive, undefined);
+  const nextActive = !isActive;
+  const disabled = pending || isSelf;
+
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <Badge variant={isActive ? "secondary" : "destructive"}>
+        {isActive ? "Active" : "Inactive"}
+      </Badge>
+      <form action={action}>
+        <input type="hidden" name="userId" value={userId} />
+        <input type="hidden" name="isActive" value={String(nextActive)} />
+        <Button
+          type="submit"
+          variant="outline"
+          size="sm"
+          disabled={disabled}
+          title={isSelf ? "You can't do that to your own account." : undefined}
+        >
+          {nextActive ? "Activate" : "Deactivate"}
+        </Button>
+      </form>
+      {state?.error && (
+        <p className="text-xs text-destructive" role="alert">
+          {state.error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function DeleteUserControl({
+  userId,
+  userName,
+  isSelf,
+  totalLogs,
+  customExerciseCount,
+}: {
+  userId: number;
+  userName: string;
+  isSelf: boolean;
+  totalLogs: number;
+  customExerciseCount: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const [state, action, pending] = useActionState(deleteUser, undefined);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-destructive"
+        disabled={isSelf}
+        title={isSelf ? "You can't do that to your own account." : undefined}
+        onClick={() => setOpen(true)}
+      >
+        <Trash2 className="h-3.5 w-3.5" /> Delete
+      </Button>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete {userName}?</DialogTitle>
+          <DialogDescription>
+            This will permanently delete this user and {totalLogs} workout
+            {totalLogs === 1 ? "" : "s"} log{totalLogs === 1 ? "" : "s"},{" "}
+            {customExerciseCount} custom exercise
+            {customExerciseCount === 1 ? "" : "s"}. This can&apos;t be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <form action={action}>
+          <input type="hidden" name="userId" value={userId} />
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="destructive" disabled={pending}>
+              {pending ? "Deleting..." : "Delete permanently"}
+            </Button>
+          </DialogFooter>
+        </form>
+        {state?.error && (
+          <p className="text-xs text-destructive" role="alert">
+            {state.error}
+          </p>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
