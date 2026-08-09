@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Dumbbell } from "lucide-react";
 import { useActionState, useState } from "react";
 import { signup } from "@/lib/server/auth/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,10 +20,17 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 p-4">
-      <Card>
+    <div className="mx-auto flex min-h-screen w-full max-w-[38rem] flex-col justify-center gap-8 p-6">
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+          <Dumbbell className="h-7 w-7" />
+        </div>
+        <span className="text-xl font-semibold">RepSetGo</span>
+        <p className="text-sm text-muted-foreground">Simple, fast gym logging.</p>
+      </div>
+      <Card className="[--card-spacing:--spacing(8)]">
         <CardHeader>
-          <CardTitle>Create your RepSetGo account</CardTitle>
+          <CardTitle className="text-2xl">Create your account</CardTitle>
         </CardHeader>
         <CardContent>
           <form action={action} className="flex flex-col gap-4">

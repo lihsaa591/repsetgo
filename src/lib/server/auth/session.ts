@@ -19,13 +19,17 @@ if (process.env.SESSION_SECRET.length < MIN_SECRET_LENGTH) {
 }
 
 const encodedKey = () => new TextEncoder().encode(process.env.SESSION_SECRET);
-const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+const SHORT_SESSION_DURATION_MS = 24 * 60 * 60 * 1000;
+const LONG_SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 
-export async function encrypt(payload: SessionPayload): Promise<string> {
+export async function encrypt(
+  payload: SessionPayload,
+  durationMs: number
+): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("7d")
+    .setExpirationTime(Math.floor((Date.now() + durationMs) / 1000))
     .sign(encodedKey());
 }
 
@@ -49,9 +53,15 @@ export async function decrypt(
   }
 }
 
-export async function createSessionCookie(payload: SessionPayload) {
-  const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
-  const token = await encrypt(payload);
+export async function createSessionCookie(
+  payload: SessionPayload,
+  rememberMe = false
+) {
+  const durationMs = rememberMe
+    ? LONG_SESSION_DURATION_MS
+    : SHORT_SESSION_DURATION_MS;
+  const expiresAt = new Date(Date.now() + durationMs);
+  const token = await encrypt(payload, durationMs);
   const cookieStore = await cookies();
   cookieStore.set("session", token, {
     httpOnly: true,

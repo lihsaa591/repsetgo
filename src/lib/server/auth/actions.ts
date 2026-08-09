@@ -79,7 +79,8 @@ export async function login(
     return { message: "Your account has been deactivated. Contact an admin." };
   }
 
-  await createSessionCookie({ userId: user.id, role: user.role });
+  const rememberMe = formData.get("rememberMe") === "on";
+  await createSessionCookie({ userId: user.id, role: user.role }, rememberMe);
   redirect("/dashboard");
 }
 

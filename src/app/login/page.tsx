@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { Dumbbell } from "lucide-react";
 import { useActionState, useState } from "react";
 import { login } from "@/lib/server/auth/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function LoginPage() {
   const [state, action, pending] = useActionState(login, undefined);
@@ -18,10 +20,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 p-4">
-      <Card>
+    <div className="mx-auto flex min-h-screen w-full max-w-[38rem] flex-col justify-center gap-8 p-6">
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+          <Dumbbell className="h-7 w-7" />
+        </div>
+        <span className="text-xl font-semibold">RepSetGo</span>
+        <p className="text-sm text-muted-foreground">Simple, fast gym logging.</p>
+      </div>
+      <Card className="[--card-spacing:--spacing(8)]">
         <CardHeader>
-          <CardTitle>Log in to RepSetGo</CardTitle>
+          <CardTitle className="text-2xl">Welcome back</CardTitle>
         </CardHeader>
         <CardContent>
           <form action={action} className="flex flex-col gap-4">
@@ -52,6 +61,12 @@ export default function LoginPage() {
               {state?.errors?.password && (
                 <p className="text-xs text-destructive">{state.errors.password[0]}</p>
               )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox id="rememberMe" name="rememberMe" value="on" />
+              <Label htmlFor="rememberMe" className="cursor-pointer font-normal text-muted-foreground">
+                Remember me
+              </Label>
             </div>
             {state?.message && (
               <p className="text-xs text-destructive">{state.message}</p>

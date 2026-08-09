@@ -10,7 +10,7 @@ import { encrypt, decrypt } from "./session";
 
 describe("session encrypt/decrypt", () => {
   it("round-trips a valid payload", async () => {
-    const token = await encrypt({ userId: 42, role: "user" });
+    const token = await encrypt({ userId: 42, role: "user" }, 24 * 60 * 60 * 1000);
     const payload = await decrypt(token);
     expect(payload).toEqual(expect.objectContaining({ userId: 42, role: "user" }));
   });
