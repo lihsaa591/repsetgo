@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Geist_Mono } from "next/font/google";
 import { RegisterServiceWorker } from "@/components/register-service-worker";
+import { ThemeScript } from "@/components/theme/theme-script";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -45,7 +46,11 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${manrope.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <ThemeScript />
+      </head>
       <body className="min-h-full flex flex-col">
         {children}
         <RegisterServiceWorker />
