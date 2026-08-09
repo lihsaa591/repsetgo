@@ -72,6 +72,10 @@ export async function login(
     return { message: "Invalid email or password." };
   }
 
+  if (!user.isActive) {
+    return { message: "Your account has been deactivated. Contact an admin." };
+  }
+
   await createSessionCookie({ userId: user.id, role: user.role });
   redirect("/dashboard");
 }
