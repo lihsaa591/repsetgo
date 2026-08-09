@@ -3,6 +3,7 @@
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { db } from "@/lib/server/db";
 import { users } from "./schema";
 import { createSessionCookie, deleteSessionCookie } from "./session";
@@ -45,7 +46,7 @@ export async function signup(
     .returning({ id: users.id, role: users.role });
 
   await createSessionCookie({ userId: user.id, role: user.role });
-  sendWelcomeEmail(email, name);
+  after(() => sendWelcomeEmail(email, name));
   redirect("/dashboard");
 }
 

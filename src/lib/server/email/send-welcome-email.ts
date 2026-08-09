@@ -1,6 +1,15 @@
 import "server-only";
 import { resend } from "./client";
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
   try {
     const { error } = await resend.emails.send({
@@ -8,7 +17,7 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<void> 
       to,
       subject: "Welcome to RepSetGo",
       html: `
-        <p>Hi ${name},</p>
+        <p>Hi ${escapeHtml(name)},</p>
         <p>Welcome to RepSetGo! Your account is ready — log your first workout whenever you're set.</p>
       `,
     });
