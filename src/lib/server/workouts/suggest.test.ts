@@ -39,4 +39,41 @@ describe("suggestNextWorkout", () => {
     expect(result.label).toBe("Push Day");
     expect(result.exercises).toEqual(["Bench Press"]);
   });
+
+  it("ranks exercises by frequency across all logs for that label, not just the most recent one", () => {
+    const logs = [
+      { label: "Push Day", date: "2026-07-01", exerciseNames: ["Bench Press", "Overhead Press"] },
+      { label: "Push Day", date: "2026-07-08", exerciseNames: ["Bench Press", "Overhead Press"] },
+      { label: "Push Day", date: "2026-07-15", exerciseNames: ["Bench Press"] },
+      // Most recent Push Day session only logged one exercise — the old
+      // logic would have suggested just ["Dips"]. Overhead Press and Bench
+      // Press appeared more often across history and should rank higher.
+      { label: "Push Day", date: "2026-08-01", exerciseNames: ["Dips"] },
+    ];
+    const result = suggestNextWorkout(logs, new Date("2026-08-07"));
+    expect(result.label).toBe("Push Day");
+    expect(result.exercises).toEqual(["Bench Press", "Overhead Press", "Dips"]);
+  });
+
+  it("caps the exercise list at 6, keeping the most frequent", () => {
+    const logs = [
+      { label: "Push Day", date: "2026-07-01", exerciseNames: ["A", "B", "C", "D", "E", "F", "G"] },
+      { label: "Push Day", date: "2026-07-08", exerciseNames: ["A", "B", "C", "D", "E", "F"] },
+      { label: "Push Day", date: "2026-07-15", exerciseNames: ["A", "B", "C", "D", "E"] },
+    ];
+    const result = suggestNextWorkout(logs, new Date("2026-08-07"));
+    expect(result.exercises).toHaveLength(6);
+    expect(result.exercises).toEqual(["A", "B", "C", "D", "E", "F"]);
+  });
+
+  it("breaks a frequency tie by which exercise was done more recently", () => {
+    const logs = [
+      { label: "Push Day", date: "2026-06-01", exerciseNames: ["Old Favorite"] },
+      { label: "Push Day", date: "2026-08-01", exerciseNames: ["Recent Pick"] },
+    ];
+    // Both exercises appear exactly once (tied frequency) — "Recent Pick"
+    // was logged more recently and should be ordered first.
+    const result = suggestNextWorkout(logs, new Date("2026-08-07"));
+    expect(result.exercises).toEqual(["Recent Pick", "Old Favorite"]);
+  });
 });

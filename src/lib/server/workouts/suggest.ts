@@ -43,9 +43,33 @@ export function suggestNextWorkout(
     (today.getTime() - new Date(chosen.date).getTime()) / (1000 * 60 * 60 * 24)
   );
 
+  const MAX_SUGGESTED_EXERCISES = 6;
+
+  const frequency = new Map<string, { count: number; lastDate: string }>();
+  for (const log of logs) {
+    if (log.label !== chosen.label) continue;
+    for (const exerciseName of log.exerciseNames) {
+      const existing = frequency.get(exerciseName);
+      if (existing) {
+        existing.count += 1;
+        if (log.date > existing.lastDate) existing.lastDate = log.date;
+      } else {
+        frequency.set(exerciseName, { count: 1, lastDate: log.date });
+      }
+    }
+  }
+
+  const exercises = Array.from(frequency.entries())
+    .sort(([, a], [, b]) => {
+      if (b.count !== a.count) return b.count - a.count;
+      return b.lastDate.localeCompare(a.lastDate);
+    })
+    .slice(0, MAX_SUGGESTED_EXERCISES)
+    .map(([exerciseName]) => exerciseName);
+
   return {
     label: chosen.label,
     reason: `It's been ${daysSince} days since your last ${chosen.label} session.`,
-    exercises: chosen.exerciseNames,
+    exercises,
   };
 }
