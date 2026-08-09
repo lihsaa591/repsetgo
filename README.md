@@ -1,5 +1,7 @@
 # RepSetGo
 
+[![Vercel deployment status](https://therealsujitk-vercel-badge.vercel.app/?app=repsetgo)](https://myrepsetgo.vercel.app)
+
 Simple, fast gym logging. Track workouts, sets, and reps; get suggested
 next workouts based on your history; install it as a PWA on your phone.
 
