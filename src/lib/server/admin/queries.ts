@@ -1,8 +1,9 @@
 import "server-only";
-import { sql } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
 import { db } from "@/lib/server/db";
 import { users } from "@/lib/server/auth/schema";
 import { workoutLogs } from "@/lib/server/workouts/schema";
+import { customExercises } from "@/lib/server/exercises/schema";
 import { appSettings } from "./schema";
 
 export type AdminUserRow = {
@@ -10,9 +11,11 @@ export type AdminUserRow = {
   name: string;
   email: string;
   role: "admin" | "user";
+  isActive: boolean;
   joinedAt: string;
   totalLogs: number;
   lastLogDate: string | null;
+  customExerciseCount: number;
 };
 
 export async function getAllUsersWithStats(): Promise<AdminUserRow[]> {
@@ -22,11 +25,12 @@ export async function getAllUsersWithStats(): Promise<AdminUserRow[]> {
       name: users.name,
       email: users.email,
       role: users.role,
+      isActive: users.isActive,
       createdAt: users.createdAt,
     })
     .from(users);
 
-  const stats = await db
+  const logStats = await db
     .select({
       userId: workoutLogs.userId,
       totalLogs: sql<number>`count(*)::int`.as("total_logs"),
@@ -35,20 +39,42 @@ export async function getAllUsersWithStats(): Promise<AdminUserRow[]> {
     .from(workoutLogs)
     .groupBy(workoutLogs.userId);
 
-  const statsByUserId = new Map(stats.map((s) => [s.userId, s]));
+  const exerciseStats = await db
+    .select({
+      userId: customExercises.userId,
+      customExerciseCount: sql<number>`count(*)::int`.as("custom_exercise_count"),
+    })
+    .from(customExercises)
+    .groupBy(customExercises.userId);
+
+  const logStatsByUserId = new Map(logStats.map((s) => [s.userId, s]));
+  const exerciseStatsByUserId = new Map(
+    exerciseStats.map((s) => [s.userId, s])
+  );
 
   return allUsers.map((user) => {
-    const userStats = statsByUserId.get(user.id);
+    const userLogStats = logStatsByUserId.get(user.id);
+    const userExerciseStats = exerciseStatsByUserId.get(user.id);
     return {
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
+      isActive: user.isActive,
       joinedAt: user.createdAt.toISOString().slice(0, 10),
-      totalLogs: userStats?.totalLogs ?? 0,
-      lastLogDate: userStats?.lastLogDate ?? null,
+      totalLogs: userLogStats?.totalLogs ?? 0,
+      lastLogDate: userLogStats?.lastLogDate ?? null,
+      customExerciseCount: userExerciseStats?.customExerciseCount ?? 0,
     };
   });
+}
+
+export async function getAdminCount(): Promise<number> {
+  const [result] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(users)
+    .where(eq(users.role, "admin"));
+  return result?.count ?? 0;
 }
 
 export async function getAppSettings(): Promise<{ registrationsOpen: boolean }> {
