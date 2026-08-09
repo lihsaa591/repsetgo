@@ -1,6 +1,12 @@
-# RepSetGo
+<p align="center">
+  <img src="public/logo.svg" alt="RepSetGo logo" width="96" height="96">
+</p>
 
-[![Vercel deployment status](https://therealsujitk-vercel-badge.vercel.app/?app=repsetgo)](https://myrepsetgo.vercel.app)
+<h1 align="center">RepSetGo</h1>
+
+<p align="center">
+  <a href="https://myrepsetgo.vercel.app"><img alt="Vercel deployment status" src="https://therealsujitk-vercel-badge.vercel.app/?app=repsetgo"></a>
+</p>
 
 Simple, fast gym logging. Track workouts, sets, and reps; get suggested
 next workouts based on your history; install it as a PWA on your phone.
