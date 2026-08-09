@@ -34,7 +34,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { setUserRole, setUserActive, deleteUser } from "@/lib/server/admin/actions";
 import type { AdminUserRow } from "@/lib/server/admin/queries";
 
@@ -247,6 +247,9 @@ function ActiveControl({
           title={isSelf ? "You can't do that to your own account." : undefined}
           onCheckedChange={() => formRef.current?.requestSubmit()}
         />
+        {pending && (
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+        )}
         <Badge variant={isActive ? "secondary" : "destructive"}>
           {isActive ? "Active" : "Inactive"}
         </Badge>
