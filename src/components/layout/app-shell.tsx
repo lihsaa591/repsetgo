@@ -25,6 +25,7 @@ import {
   NavProgressProvider,
   NavProgressReporter,
 } from "@/components/layout/nav-progress";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -60,9 +61,12 @@ export function AppShell({
       <div className="flex min-h-screen w-full flex-col md:flex-row">
         {/* Desktop sidebar */}
         <aside className="hidden md:flex md:w-60 md:flex-col md:border-r md:bg-muted/30">
-          <div className="flex items-center gap-2 px-6 py-5">
-            <Dumbbell className="h-6 w-6" />
-            <span className="text-lg font-semibold">RepSetGo</span>
+          <div className="flex items-center justify-between gap-2 px-6 py-5">
+            <div className="flex items-center gap-2">
+              <Dumbbell className="h-6 w-6" />
+              <span className="text-lg font-semibold">RepSetGo</span>
+            </div>
+            <ThemeToggle />
           </div>
           <nav className="flex flex-col gap-1 px-3">
             {navItems.map((item) => {
@@ -131,39 +135,40 @@ export function AppShell({
             <Dumbbell className="h-5 w-5" />
             <span className="font-semibold">RepSetGo</span>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Avatar className="h-8 w-8">
-                {avatarSrc ? (
-                  <AvatarImage src={avatarSrc} alt={user.name} />
-                ) : null}
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem
-                render={<Link href="/settings" />}
-              >
-                Account settings
-                <NavProgressReporter id="/settings" />
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <form action={logout}>
-                <DropdownMenuItem
-                  variant="destructive"
-                  render={
-                    <button
-                      type="submit"
-                      className="flex w-full items-center gap-2"
-                    />
-                  }
-                >
-                  <LogOut className="h-4 w-4" />
-                  Log out
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Avatar className="h-8 w-8">
+                  {avatarSrc ? (
+                    <AvatarImage src={avatarSrc} alt={user.name} />
+                  ) : null}
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem render={<Link href="/settings" />}>
+                  Account settings
+                  <NavProgressReporter id="/settings" />
                 </DropdownMenuItem>
-              </form>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuSeparator />
+                <form action={logout}>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    render={
+                      <button
+                        type="submit"
+                        className="flex w-full items-center gap-2"
+                      />
+                    }
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </form>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </header>
 
         <main className="flex-1 pb-20 md:pb-0">

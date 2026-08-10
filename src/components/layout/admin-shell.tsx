@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Dumbbell, Users, Settings, ArrowLeft, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logout } from "@/lib/server/auth/actions";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 const navItems = [
   { href: "/admin", label: "Users", icon: Users },
@@ -17,12 +18,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen w-full">
       <aside className="hidden w-60 flex-col border-r bg-muted/30 md:flex">
-        <div className="flex items-center gap-2 px-6 py-5">
-          <Dumbbell className="h-6 w-6" />
-          <div className="flex flex-col leading-tight">
-            <span className="text-lg font-semibold">RepSetGo</span>
-            <span className="text-xs text-muted-foreground">Admin</span>
+        <div className="flex items-center justify-between gap-2 px-6 py-5">
+          <div className="flex items-center gap-2">
+            <Dumbbell className="h-6 w-6" />
+            <div className="flex flex-col leading-tight">
+              <span className="text-lg font-semibold">RepSetGo</span>
+              <span className="text-xs text-muted-foreground">Admin</span>
+            </div>
           </div>
+          <ThemeToggle />
         </div>
         <nav className="flex flex-col gap-1 px-3">
           {navItems.map((item) => {
@@ -71,6 +75,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <Link href="/dashboard" className="text-xs text-muted-foreground">
             Exit
           </Link>
