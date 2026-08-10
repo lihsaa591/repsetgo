@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ExercisePicker } from "@/components/exercise-picker";
-import { Trash2, Plus, NotebookPen } from "lucide-react";
+import { Trash2, Plus, NotebookPen, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { WorkoutLogWithDetails } from "@/lib/server/workouts/queries";
 import type { WorkoutFormState } from "@/lib/server/workouts/validation";
@@ -95,6 +95,21 @@ export function WorkoutForm({
       const next = new Set(prev);
       if (next.has(setId)) next.delete(setId);
       else next.add(setId);
+      return next;
+    });
+  }
+
+  // Exercises start expanded; collapsing is purely a display convenience —
+  // collapsed exercises still submit normally via their hidden inputs.
+  const [collapsedExerciseIds, setCollapsedExerciseIds] = useState<
+    ReadonlySet<string>
+  >(new Set());
+
+  function toggleExerciseCollapsed(exerciseId: string) {
+    setCollapsedExerciseIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(exerciseId)) next.delete(exerciseId);
+      else next.add(exerciseId);
       return next;
     });
   }
@@ -245,13 +260,42 @@ export function WorkoutForm({
                   onAddCustom={onAddCustomExercise}
                 />
               </div>
+              {collapsedExerciseIds.has(exercise.id) && (
+                <span className="text-xs text-muted-foreground">
+                  {exercise.sets.length} set{exercise.sets.length === 1 ? "" : "s"}
+                </span>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                type="button"
+                aria-label={
+                  collapsedExerciseIds.has(exercise.id)
+                    ? "Expand exercise"
+                    : "Collapse exercise"
+                }
+                aria-expanded={!collapsedExerciseIds.has(exercise.id)}
+                onClick={() => toggleExerciseCollapsed(exercise.id)}
+              >
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 text-muted-foreground transition-transform",
+                    collapsedExerciseIds.has(exercise.id) && "-rotate-90"
+                  )}
+                />
+              </Button>
               {exercises.length > 1 && (
                 <Button variant="ghost" size="icon" type="button" onClick={() => removeExercise(exercise.id)}>
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
               )}
             </CardHeader>
-            <CardContent className="flex flex-col gap-2">
+            <CardContent
+              className={cn(
+                "flex flex-col gap-2",
+                collapsedExerciseIds.has(exercise.id) && "hidden"
+              )}
+            >
               <div className="grid grid-cols-[2rem_1fr_1fr_3.5rem_2rem_2rem] items-center gap-2 text-xs font-medium text-muted-foreground">
                 <span>Set</span>
                 <span>Reps</span>
