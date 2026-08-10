@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ExercisePicker } from "@/components/exercise-picker";
-import { Trash2, Plus, StickyNote } from "lucide-react";
+import { Trash2, Plus, NotebookPen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { WorkoutLogWithDetails } from "@/lib/server/workouts/queries";
 import type { WorkoutFormState } from "@/lib/server/workouts/validation";
@@ -301,7 +301,7 @@ export function WorkoutForm({
                         title="Add a note to this set"
                         onClick={() => toggleNoteOpen(set.id)}
                       >
-                        <StickyNote
+                        <NotebookPen
                           className={cn(
                             "h-3.5 w-3.5",
                             set.note ? "text-primary" : "text-muted-foreground/60"
