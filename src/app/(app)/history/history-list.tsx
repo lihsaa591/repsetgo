@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/pagination";
 import { deleteWorkoutLog } from "@/lib/server/workouts/actions";
 import type { WorkoutLogWithDetails } from "@/lib/server/workouts/queries";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, NotebookPen } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -95,21 +95,47 @@ export function HistoryList({ logs }: { logs: WorkoutLogWithDetails[] }) {
                 </div>
               </div>
               <AccordionContent className="flex flex-col gap-4">
-                {log.exercises.map((ex) => (
-                  <div key={ex.id}>
-                    <p className="mb-1 text-sm font-medium">{ex.exerciseName}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {ex.sets.map((s) => (
-                        <span
-                          key={s.setNumber}
-                          className="rounded-md bg-muted px-2 py-1 text-xs"
-                        >
-                          {s.reps} reps × {s.weight}kg
-                        </span>
-                      ))}
+                {log.exercises.map((ex) => {
+                  const setsWithNotes = ex.sets.filter((s) => s.note);
+                  return (
+                    <div key={ex.id}>
+                      <p className="mb-1 text-sm font-medium">{ex.exerciseName}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {ex.sets.map((s) => (
+                          <span
+                            key={s.setNumber}
+                            className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs"
+                          >
+                            {s.reps} reps × {s.weight}kg
+                            {s.isDropset && (
+                              <span
+                                title="Dropset: a set taken to near-failure, then continued at a lower weight without rest"
+                                className="rounded-sm bg-primary px-1 text-[10px] font-semibold tracking-wide text-primary-foreground"
+                              >
+                                DS
+                              </span>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                      {setsWithNotes.length > 0 && (
+                        <div className="mt-1 flex flex-col gap-0.5">
+                          {setsWithNotes.map((s) => (
+                            <p
+                              key={s.setNumber}
+                              className="flex items-start gap-1 text-xs italic text-muted-foreground"
+                            >
+                              <NotebookPen className="mt-0.5 h-3 w-3 shrink-0" />
+                              <span>
+                                Set {s.setNumber}: {s.note}
+                              </span>
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {log.notes && (
                   <p className="rounded-md bg-muted/50 p-2 text-xs italic text-muted-foreground">
                     &quot;{log.notes}&quot;

@@ -12,7 +12,13 @@ export type WorkoutLogWithDetails = {
   exercises: {
     id: number;
     exerciseName: string;
-    sets: { setNumber: number; reps: number; weight: number }[];
+    sets: {
+      setNumber: number;
+      reps: number;
+      weight: number;
+      isDropset: boolean;
+      note: string | null;
+    }[];
   }[];
 };
 
@@ -85,6 +91,8 @@ async function attachDetailsBatch(
         setNumber: s.setNumber,
         reps: s.reps,
         weight: Number(s.weight),
+        isDropset: s.isDropset,
+        note: s.note,
       })),
     };
     const existing = exercisesByLogId.get(ex.workoutLogId);

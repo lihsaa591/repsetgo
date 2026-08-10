@@ -5,6 +5,7 @@ import {
   text,
   date,
   numeric,
+  boolean,
   timestamp,
   index,
 } from "drizzle-orm/pg-core";
@@ -48,6 +49,8 @@ export const sets = pgTable(
     setNumber: integer("set_number").notNull(),
     reps: integer("reps").notNull(),
     weight: numeric("weight").notNull(),
+    isDropset: boolean("is_dropset").notNull().default(false),
+    note: text("note"),
   },
   (table) => [index("sets_exercise_log_id_idx").on(table.exerciseLogId)],
 );
