@@ -6,7 +6,12 @@
 export type ParsedExercise = {
   exerciseName: string;
   order: number;
-  setsList: { setNumber: number; reps: number; weight: number }[];
+  setsList: {
+    setNumber: number;
+    reps: number;
+    weight: number;
+    isDropset: boolean;
+  }[];
 };
 
 export type ParsedWorkout = {
@@ -111,8 +116,9 @@ export function parseWorkoutForm(formData: FormData): ParseResult {
       if (!Number.isFinite(weight) || weight < 0 || weight > MAX_WEIGHT) {
         return { ok: false, error: `Weight must be a number from 0 to ${MAX_WEIGHT}.` };
       }
+      const isDropset = formData.get(`exercise-${i}-set-${s}-isDropset`) === "on";
 
-      setsList.push({ setNumber: s + 1, reps, weight });
+      setsList.push({ setNumber: s + 1, reps, weight, isDropset });
     }
 
     exercises.push({ exerciseName, order: i, setsList });

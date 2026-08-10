@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseWorkoutForm } from "./validation";
 
-type SetInput = { reps?: string; weight?: string };
+type SetInput = { reps?: string; weight?: string; isDropset?: boolean };
 type ExerciseInput = { name?: string; sets?: SetInput[] };
 
 function buildForm({
@@ -32,6 +32,7 @@ function buildForm({
     sets.forEach((s, si) => {
       fd.set(`exercise-${i}-set-${si}-reps`, s.reps ?? "");
       fd.set(`exercise-${i}-set-${si}-weight`, s.weight ?? "");
+      if (s.isDropset) fd.set(`exercise-${i}-set-${si}-isDropset`, "on");
     });
   });
 
@@ -50,7 +51,7 @@ describe("parseWorkoutForm", () => {
       {
         exerciseName: "Bench Press",
         order: 0,
-        setsList: [{ setNumber: 1, reps: 8, weight: 60 }],
+        setsList: [{ setNumber: 1, reps: 8, weight: 60, isDropset: false }],
       },
     ]);
   });
@@ -65,7 +66,30 @@ describe("parseWorkoutForm", () => {
       setNumber: 1,
       reps: 0,
       weight: 0,
+      isDropset: false,
     });
+  });
+
+  it("marks a set as a dropset when the isDropset field is present", () => {
+    const result = parseWorkoutForm(
+      buildForm({
+        exercises: [
+          {
+            name: "Leg Press",
+            sets: [
+              { reps: "10", weight: "100" },
+              { reps: "8", weight: "80", isDropset: true },
+            ],
+          },
+        ],
+      })
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.exercises[0].setsList).toEqual([
+      { setNumber: 1, reps: 10, weight: 100, isDropset: false },
+      { setNumber: 2, reps: 8, weight: 80, isDropset: true },
+    ]);
   });
 
   it("keeps notes when provided", () => {

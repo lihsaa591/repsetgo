@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/pagination";
 import { deleteWorkoutLog } from "@/lib/server/workouts/actions";
 import type { WorkoutLogWithDetails } from "@/lib/server/workouts/queries";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, TrendingDown } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -102,9 +102,17 @@ export function HistoryList({ logs }: { logs: WorkoutLogWithDetails[] }) {
                       {ex.sets.map((s) => (
                         <span
                           key={s.setNumber}
-                          className="rounded-md bg-muted px-2 py-1 text-xs"
+                          className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs"
                         >
                           {s.reps} reps × {s.weight}kg
+                          {s.isDropset && (
+                            <span
+                              title="Dropset"
+                              className="flex items-center gap-0.5 text-primary"
+                            >
+                              <TrendingDown className="h-3 w-3" />
+                            </span>
+                          )}
                         </span>
                       ))}
                     </div>

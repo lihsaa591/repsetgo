@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ExercisePicker } from "@/components/exercise-picker";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, TrendingDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { WorkoutLogWithDetails } from "@/lib/server/workouts/queries";
 import type { WorkoutFormState } from "@/lib/server/workouts/validation";
 
@@ -19,7 +20,7 @@ function todayLocalIso() {
   return `${now.getFullYear()}-${month}-${day}`;
 }
 
-type DraftSet = { id: string; reps: string; weight: string };
+type DraftSet = { id: string; reps: string; weight: string; isDropset: boolean };
 type DraftExercise = { id: string; exerciseName: string; sets: DraftSet[] };
 
 let idCounter = 0;
@@ -28,7 +29,11 @@ const nextId = () => `d${idCounter++}`;
 function toDraftExercises(log?: WorkoutLogWithDetails): DraftExercise[] {
   if (!log) {
     return [
-      { id: nextId(), exerciseName: "", sets: [{ id: nextId(), reps: "", weight: "" }] },
+      {
+        id: nextId(),
+        exerciseName: "",
+        sets: [{ id: nextId(), reps: "", weight: "", isDropset: false }],
+      },
     ];
   }
   return log.exercises.map((ex) => ({
@@ -38,6 +43,7 @@ function toDraftExercises(log?: WorkoutLogWithDetails): DraftExercise[] {
       id: nextId(),
       reps: String(s.reps),
       weight: String(s.weight),
+      isDropset: s.isDropset,
     })),
   }));
 }
@@ -71,7 +77,11 @@ export function WorkoutForm({
   function addExercise() {
     setExercises((prev) => [
       ...prev,
-      { id: nextId(), exerciseName: "", sets: [{ id: nextId(), reps: "", weight: "" }] },
+      {
+        id: nextId(),
+        exerciseName: "",
+        sets: [{ id: nextId(), reps: "", weight: "", isDropset: false }],
+      },
     ]);
   }
 
@@ -97,6 +107,9 @@ export function WorkoutForm({
           id: nextId(),
           reps: lastSet?.reps ?? "",
           weight: lastSet?.weight ?? "",
+          // Dropsets are a one-off tag on a specific set, not something to
+          // repeat automatically onto the next set.
+          isDropset: false,
         };
         return { ...e, sets: [...e.sets, newSet] };
       })
@@ -125,6 +138,21 @@ export function WorkoutForm({
           ? {
               ...e,
               sets: e.sets.map((s) => (s.id === setId ? { ...s, [field]: value } : s)),
+            }
+          : e
+      )
+    );
+  }
+
+  function toggleDropset(exerciseId: string, setId: string) {
+    setExercises((prev) =>
+      prev.map((e) =>
+        e.id === exerciseId
+          ? {
+              ...e,
+              sets: e.sets.map((s) =>
+                s.id === setId ? { ...s, isDropset: !s.isDropset } : s
+              ),
             }
           : e
       )
@@ -196,14 +224,18 @@ export function WorkoutForm({
               )}
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
-              <div className="grid grid-cols-[2rem_1fr_1fr_2rem] items-center gap-2 text-xs font-medium text-muted-foreground">
+              <div className="grid grid-cols-[2rem_1fr_1fr_2rem_2rem] items-center gap-2 text-xs font-medium text-muted-foreground">
                 <span>Set</span>
                 <span>Reps</span>
                 <span>Weight (kg)</span>
                 <span />
+                <span />
               </div>
               {exercise.sets.map((set, setIdx) => (
-                <div key={set.id} className="grid grid-cols-[2rem_1fr_1fr_2rem] items-center gap-2">
+                <div
+                  key={set.id}
+                  className="grid grid-cols-[2rem_1fr_1fr_2rem_2rem] items-center gap-2"
+                >
                   <span className="text-sm font-medium text-muted-foreground">{setIdx + 1}</span>
                   <Input
                     type="number"
@@ -221,6 +253,26 @@ export function WorkoutForm({
                     onChange={(e) => updateSet(exercise.id, set.id, "weight", e.target.value)}
                     placeholder="60"
                   />
+                  <input
+                    type="hidden"
+                    name={`exercise-${exIdx}-set-${setIdx}-isDropset`}
+                    value={set.isDropset ? "on" : ""}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    type="button"
+                    aria-label={set.isDropset ? "Remove dropset tag" : "Mark as dropset"}
+                    aria-pressed={set.isDropset}
+                    onClick={() => toggleDropset(exercise.id, set.id)}
+                  >
+                    <TrendingDown
+                      className={cn(
+                        "h-3.5 w-3.5",
+                        set.isDropset ? "text-primary" : "text-muted-foreground/40"
+                      )}
+                    />
+                  </Button>
                   {exercise.sets.length > 1 ? (
                     <Button variant="ghost" size="icon" type="button" onClick={() => removeSet(exercise.id, set.id)}>
                       <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
