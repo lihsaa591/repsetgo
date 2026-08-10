@@ -6,9 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ExercisePicker } from "@/components/exercise-picker";
-import { Trash2, Plus, TrendingDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Trash2, Plus } from "lucide-react";
 import type { WorkoutLogWithDetails } from "@/lib/server/workouts/queries";
 import type { WorkoutFormState } from "@/lib/server/workouts/validation";
 
@@ -224,17 +224,17 @@ export function WorkoutForm({
               )}
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
-              <div className="grid grid-cols-[2rem_1fr_1fr_2rem_2rem] items-center gap-2 text-xs font-medium text-muted-foreground">
+              <div className="grid grid-cols-[2rem_1fr_1fr_3.5rem_2rem] items-center gap-2 text-xs font-medium text-muted-foreground">
                 <span>Set</span>
                 <span>Reps</span>
                 <span>Weight (kg)</span>
-                <span />
+                <span className="text-center">Dropset?</span>
                 <span />
               </div>
               {exercise.sets.map((set, setIdx) => (
                 <div
                   key={set.id}
-                  className="grid grid-cols-[2rem_1fr_1fr_2rem_2rem] items-center gap-2"
+                  className="grid grid-cols-[2rem_1fr_1fr_3.5rem_2rem] items-center gap-2"
                 >
                   <span className="text-sm font-medium text-muted-foreground">{setIdx + 1}</span>
                   <Input
@@ -253,26 +253,16 @@ export function WorkoutForm({
                     onChange={(e) => updateSet(exercise.id, set.id, "weight", e.target.value)}
                     placeholder="60"
                   />
-                  <input
-                    type="hidden"
-                    name={`exercise-${exIdx}-set-${setIdx}-isDropset`}
-                    value={set.isDropset ? "on" : ""}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    type="button"
-                    aria-label={set.isDropset ? "Remove dropset tag" : "Mark as dropset"}
-                    aria-pressed={set.isDropset}
-                    onClick={() => toggleDropset(exercise.id, set.id)}
-                  >
-                    <TrendingDown
-                      className={cn(
-                        "h-3.5 w-3.5",
-                        set.isDropset ? "text-primary" : "text-muted-foreground/40"
-                      )}
+                  <div className="flex justify-center">
+                    <Checkbox
+                      name={`exercise-${exIdx}-set-${setIdx}-isDropset`}
+                      value="on"
+                      checked={set.isDropset}
+                      onCheckedChange={() => toggleDropset(exercise.id, set.id)}
+                      aria-label="Dropset: a set taken to near-failure, then continued at a lower weight without rest"
+                      title="Dropset: a set taken to near-failure, then continued at a lower weight without rest"
                     />
-                  </Button>
+                  </div>
                   {exercise.sets.length > 1 ? (
                     <Button variant="ghost" size="icon" type="button" onClick={() => removeSet(exercise.id, set.id)}>
                       <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
