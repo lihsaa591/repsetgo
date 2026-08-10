@@ -50,6 +50,7 @@ export const sets = pgTable(
     reps: integer("reps").notNull(),
     weight: numeric("weight").notNull(),
     isDropset: boolean("is_dropset").notNull().default(false),
+    note: text("note"),
   },
   (table) => [index("sets_exercise_log_id_idx").on(table.exerciseLogId)],
 );

@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { parseWorkoutForm } from "./validation";
 
-type SetInput = { reps?: string; weight?: string; isDropset?: boolean };
+type SetInput = {
+  reps?: string;
+  weight?: string;
+  isDropset?: boolean;
+  note?: string;
+};
 type ExerciseInput = { name?: string; sets?: SetInput[] };
 
 function buildForm({
@@ -33,6 +38,7 @@ function buildForm({
       fd.set(`exercise-${i}-set-${si}-reps`, s.reps ?? "");
       fd.set(`exercise-${i}-set-${si}-weight`, s.weight ?? "");
       if (s.isDropset) fd.set(`exercise-${i}-set-${si}-isDropset`, "on");
+      if (s.note) fd.set(`exercise-${i}-set-${si}-note`, s.note);
     });
   });
 
@@ -51,7 +57,9 @@ describe("parseWorkoutForm", () => {
       {
         exerciseName: "Bench Press",
         order: 0,
-        setsList: [{ setNumber: 1, reps: 8, weight: 60, isDropset: false }],
+        setsList: [
+          { setNumber: 1, reps: 8, weight: 60, isDropset: false, note: null },
+        ],
       },
     ]);
   });
@@ -67,6 +75,7 @@ describe("parseWorkoutForm", () => {
       reps: 0,
       weight: 0,
       isDropset: false,
+      note: null,
     });
   });
 
@@ -87,9 +96,35 @@ describe("parseWorkoutForm", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.data.exercises[0].setsList).toEqual([
-      { setNumber: 1, reps: 10, weight: 100, isDropset: false },
-      { setNumber: 2, reps: 8, weight: 80, isDropset: true },
+      { setNumber: 1, reps: 10, weight: 100, isDropset: false, note: null },
+      { setNumber: 2, reps: 8, weight: 80, isDropset: true, note: null },
     ]);
+  });
+
+  it("keeps a set note when provided, trims it, and rejects it when too long", () => {
+    const withNote = parseWorkoutForm(
+      buildForm({
+        exercises: [
+          {
+            name: "Row",
+            sets: [{ reps: "10", weight: "50", note: "  felt easy  " }],
+          },
+        ],
+      })
+    );
+    expect(withNote.ok).toBe(true);
+    if (withNote.ok) {
+      expect(withNote.data.exercises[0].setsList[0].note).toBe("felt easy");
+    }
+
+    const tooLong = parseWorkoutForm(
+      buildForm({
+        exercises: [
+          { name: "Row", sets: [{ reps: "10", weight: "50", note: "x".repeat(301) }] },
+        ],
+      })
+    );
+    expect(tooLong.ok).toBe(false);
   });
 
   it("keeps notes when provided", () => {

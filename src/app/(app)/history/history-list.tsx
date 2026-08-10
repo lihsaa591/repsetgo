@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/pagination";
 import { deleteWorkoutLog } from "@/lib/server/workouts/actions";
 import type { WorkoutLogWithDetails } from "@/lib/server/workouts/queries";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, StickyNote } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
@@ -111,6 +111,11 @@ export function HistoryList({ logs }: { logs: WorkoutLogWithDetails[] }) {
                               className="rounded-sm bg-primary px-1 text-[10px] font-semibold tracking-wide text-primary-foreground"
                             >
                               DS
+                            </span>
+                          )}
+                          {s.note && (
+                            <span title={s.note}>
+                              <StickyNote className="h-3 w-3 text-muted-foreground" />
                             </span>
                           )}
                         </span>

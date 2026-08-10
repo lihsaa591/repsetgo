@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ExercisePicker } from "@/components/exercise-picker";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, StickyNote } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { WorkoutLogWithDetails } from "@/lib/server/workouts/queries";
 import type { WorkoutFormState } from "@/lib/server/workouts/validation";
 
@@ -20,7 +21,13 @@ function todayLocalIso() {
   return `${now.getFullYear()}-${month}-${day}`;
 }
 
-type DraftSet = { id: string; reps: string; weight: string; isDropset: boolean };
+type DraftSet = {
+  id: string;
+  reps: string;
+  weight: string;
+  isDropset: boolean;
+  note: string;
+};
 type DraftExercise = { id: string; exerciseName: string; sets: DraftSet[] };
 
 let idCounter = 0;
@@ -32,7 +39,9 @@ function toDraftExercises(log?: WorkoutLogWithDetails): DraftExercise[] {
       {
         id: nextId(),
         exerciseName: "",
-        sets: [{ id: nextId(), reps: "", weight: "", isDropset: false }],
+        sets: [
+          { id: nextId(), reps: "", weight: "", isDropset: false, note: "" },
+        ],
       },
     ];
   }
@@ -44,6 +53,7 @@ function toDraftExercises(log?: WorkoutLogWithDetails): DraftExercise[] {
       reps: String(s.reps),
       weight: String(s.weight),
       isDropset: s.isDropset,
+      note: s.note ?? "",
     })),
   }));
 }
@@ -73,6 +83,21 @@ export function WorkoutForm({
   const [exercises, setExercises] = useState<DraftExercise[]>(() =>
     toDraftExercises(initialLog)
   );
+  // Which sets have their note field expanded. Sets that already carry a
+  // note from an existing log start expanded so it's visible on open.
+  const [openNoteIds, setOpenNoteIds] = useState<ReadonlySet<string>>(() => {
+    const withNotes = exercises.flatMap((e) => e.sets).filter((s) => s.note);
+    return new Set(withNotes.map((s) => s.id));
+  });
+
+  function toggleNoteOpen(setId: string) {
+    setOpenNoteIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(setId)) next.delete(setId);
+      else next.add(setId);
+      return next;
+    });
+  }
 
   function addExercise() {
     setExercises((prev) => [
@@ -80,7 +105,9 @@ export function WorkoutForm({
       {
         id: nextId(),
         exerciseName: "",
-        sets: [{ id: nextId(), reps: "", weight: "", isDropset: false }],
+        sets: [
+          { id: nextId(), reps: "", weight: "", isDropset: false, note: "" },
+        ],
       },
     ]);
   }
@@ -107,9 +134,10 @@ export function WorkoutForm({
           id: nextId(),
           reps: lastSet?.reps ?? "",
           weight: lastSet?.weight ?? "",
-          // Dropsets are a one-off tag on a specific set, not something to
-          // repeat automatically onto the next set.
+          // Dropsets and notes are one-off tags on a specific set, not
+          // something to repeat automatically onto the next set.
           isDropset: false,
+          note: "",
         };
         return { ...e, sets: [...e.sets, newSet] };
       })
@@ -129,7 +157,7 @@ export function WorkoutForm({
   function updateSet(
     exerciseId: string,
     setId: string,
-    field: "reps" | "weight",
+    field: "reps" | "weight" | "note",
     value: string
   ) {
     setExercises((prev) =>
@@ -224,54 +252,83 @@ export function WorkoutForm({
               )}
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
-              <div className="grid grid-cols-[2rem_1fr_1fr_3.5rem_2rem] items-center gap-2 text-xs font-medium text-muted-foreground">
+              <div className="grid grid-cols-[2rem_1fr_1fr_3.5rem_2rem_2rem] items-center gap-2 text-xs font-medium text-muted-foreground">
                 <span>Set</span>
                 <span>Reps</span>
                 <span>Weight (kg)</span>
                 <span className="text-center">Dropset?</span>
                 <span />
+                <span />
               </div>
-              {exercise.sets.map((set, setIdx) => (
-                <div
-                  key={set.id}
-                  className="grid grid-cols-[2rem_1fr_1fr_3.5rem_2rem] items-center gap-2"
-                >
-                  <span className="text-sm font-medium text-muted-foreground">{setIdx + 1}</span>
-                  <Input
-                    type="number"
-                    inputMode="numeric"
-                    name={`exercise-${exIdx}-set-${setIdx}-reps`}
-                    value={set.reps}
-                    onChange={(e) => updateSet(exercise.id, set.id, "reps", e.target.value)}
-                    placeholder="10"
-                  />
-                  <Input
-                    type="number"
-                    inputMode="decimal"
-                    name={`exercise-${exIdx}-set-${setIdx}-weight`}
-                    value={set.weight}
-                    onChange={(e) => updateSet(exercise.id, set.id, "weight", e.target.value)}
-                    placeholder="60"
-                  />
-                  <div className="flex justify-center">
-                    <Checkbox
-                      name={`exercise-${exIdx}-set-${setIdx}-isDropset`}
-                      value="on"
-                      checked={set.isDropset}
-                      onCheckedChange={() => toggleDropset(exercise.id, set.id)}
-                      aria-label="Dropset: a set taken to near-failure, then continued at a lower weight without rest"
-                      title="Dropset: a set taken to near-failure, then continued at a lower weight without rest"
-                    />
+              {exercise.sets.map((set, setIdx) => {
+                const noteOpen = openNoteIds.has(set.id);
+                return (
+                  <div key={set.id} className="flex flex-col gap-1.5">
+                    <div className="grid grid-cols-[2rem_1fr_1fr_3.5rem_2rem_2rem] items-center gap-2">
+                      <span className="text-sm font-medium text-muted-foreground">{setIdx + 1}</span>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        name={`exercise-${exIdx}-set-${setIdx}-reps`}
+                        value={set.reps}
+                        onChange={(e) => updateSet(exercise.id, set.id, "reps", e.target.value)}
+                        placeholder="10"
+                      />
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        name={`exercise-${exIdx}-set-${setIdx}-weight`}
+                        value={set.weight}
+                        onChange={(e) => updateSet(exercise.id, set.id, "weight", e.target.value)}
+                        placeholder="60"
+                      />
+                      <div className="flex justify-center">
+                        <Checkbox
+                          name={`exercise-${exIdx}-set-${setIdx}-isDropset`}
+                          value="on"
+                          checked={set.isDropset}
+                          onCheckedChange={() => toggleDropset(exercise.id, set.id)}
+                          aria-label="Dropset: a set taken to near-failure, then continued at a lower weight without rest"
+                          title="Dropset: a set taken to near-failure, then continued at a lower weight without rest"
+                        />
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        aria-label={noteOpen ? "Hide note" : "Add note"}
+                        aria-pressed={noteOpen}
+                        title="Add a note to this set"
+                        onClick={() => toggleNoteOpen(set.id)}
+                      >
+                        <StickyNote
+                          className={cn(
+                            "h-3.5 w-3.5",
+                            set.note ? "text-primary" : "text-muted-foreground/60"
+                          )}
+                        />
+                      </Button>
+                      {exercise.sets.length > 1 ? (
+                        <Button variant="ghost" size="icon" type="button" onClick={() => removeSet(exercise.id, set.id)}>
+                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Button>
+                      ) : (
+                        <span />
+                      )}
+                    </div>
+                    {noteOpen && (
+                      <Textarea
+                        name={`exercise-${exIdx}-set-${setIdx}-note`}
+                        value={set.note}
+                        onChange={(e) => updateSet(exercise.id, set.id, "note", e.target.value)}
+                        placeholder="e.g. felt easy, could go heavier next time"
+                        rows={1}
+                        className="text-xs"
+                      />
+                    )}
                   </div>
-                  {exercise.sets.length > 1 ? (
-                    <Button variant="ghost" size="icon" type="button" onClick={() => removeSet(exercise.id, set.id)}>
-                      <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                    </Button>
-                  ) : (
-                    <span />
-                  )}
-                </div>
-              ))}
+                );
+              })}
               <Button variant="outline" size="sm" type="button" className="mt-1 w-fit" onClick={() => addSet(exercise.id)}>
                 <Plus className="h-3.5 w-3.5" /> Add set
               </Button>

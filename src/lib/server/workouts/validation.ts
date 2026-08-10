@@ -11,6 +11,7 @@ export type ParsedExercise = {
     reps: number;
     weight: number;
     isDropset: boolean;
+    note: string | null;
   }[];
 };
 
@@ -29,6 +30,7 @@ const MAX_EXERCISES = 50;
 const MAX_SETS_PER_EXERCISE = 50;
 const MAX_LABEL_LENGTH = 200;
 const MAX_NOTES_LENGTH = 2000;
+const MAX_SET_NOTE_LENGTH = 300;
 const MAX_REPS = 1000;
 const MAX_WEIGHT = 2000;
 const MIN_DATE = "1900-01-01";
@@ -117,8 +119,16 @@ export function parseWorkoutForm(formData: FormData): ParseResult {
         return { ok: false, error: `Weight must be a number from 0 to ${MAX_WEIGHT}.` };
       }
       const isDropset = formData.get(`exercise-${i}-set-${s}-isDropset`) === "on";
+      const note =
+        String(formData.get(`exercise-${i}-set-${s}-note`) ?? "").trim() || null;
+      if (note && note.length > MAX_SET_NOTE_LENGTH) {
+        return {
+          ok: false,
+          error: `Set notes must be ${MAX_SET_NOTE_LENGTH} characters or fewer.`,
+        };
+      }
 
-      setsList.push({ setNumber: s + 1, reps, weight, isDropset });
+      setsList.push({ setNumber: s + 1, reps, weight, isDropset, note });
     }
 
     exercises.push({ exerciseName, order: i, setsList });

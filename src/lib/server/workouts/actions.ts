@@ -117,6 +117,7 @@ async function insertExercisesAndSets(
           reps: s.reps,
           weight: String(s.weight),
           isDropset: s.isDropset,
+          note: s.note,
         }))
       );
     }
