@@ -115,6 +115,10 @@ export function WorkoutForm({
   }
 
   function addExercise() {
+    // Collapse everything already on the page so the new (empty, most
+    // relevant) exercise is the one visible without scrolling past
+    // already-filled-in cards.
+    setCollapsedExerciseIds(new Set(exercises.map((e) => e.id)));
     setExercises((prev) => [
       ...prev,
       {
@@ -261,7 +265,7 @@ export function WorkoutForm({
                 />
               </div>
               {collapsedExerciseIds.has(exercise.id) && (
-                <span className="text-xs text-muted-foreground">
+                <span className="flex h-8 items-center text-xs text-muted-foreground">
                   {exercise.sets.length} set{exercise.sets.length === 1 ? "" : "s"}
                 </span>
               )}
