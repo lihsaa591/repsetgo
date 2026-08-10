@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Geist_Mono } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { RegisterServiceWorker } from "@/components/register-service-worker";
 import { ThemeScript } from "@/components/theme/theme-script";
 import "./globals.css";
@@ -54,6 +55,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <RegisterServiceWorker />
+        <SpeedInsights />
       </body>
     </html>
   );
