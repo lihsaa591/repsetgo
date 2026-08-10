@@ -1,0 +1,1 @@
+ALTER TABLE "sets" ADD COLUMN "is_dropset" boolean DEFAULT false NOT NULL;
