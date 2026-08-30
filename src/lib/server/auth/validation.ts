@@ -29,6 +29,10 @@ export const ChangePasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const RequestPasswordResetSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email."),
+});
+
 export type AuthFormState =
   | {
       errors?: Record<string, string[]>;
@@ -41,5 +45,12 @@ export type ChangePasswordFormState =
       errors?: Record<string, string[]>;
       message?: string;
       success?: boolean;
+    }
+  | undefined;
+
+export type RequestPasswordResetFormState =
+  | {
+      errors?: Record<string, string[]>;
+      message?: string;
     }
   | undefined;

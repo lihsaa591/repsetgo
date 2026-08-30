@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ChangePasswordSchema } from "./validation";
+import { ChangePasswordSchema, RequestPasswordResetSchema } from "./validation";
 
 describe("ChangePasswordSchema", () => {
   it("accepts a valid matching password pair", () => {
@@ -38,6 +38,22 @@ describe("ChangePasswordSchema", () => {
     const result = ChangePasswordSchema.safeParse({
       password: "newpass123",
       confirmPassword: "different123",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("RequestPasswordResetSchema", () => {
+  it("accepts a valid email", () => {
+    const result = RequestPasswordResetSchema.safeParse({
+      email: "user@example.com",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a malformed email", () => {
+    const result = RequestPasswordResetSchema.safeParse({
+      email: "not-an-email",
     });
     expect(result.success).toBe(false);
   });
