@@ -15,7 +15,40 @@ export const LoginSchema = z.object({
   password: z.string().min(1, "Password is required."),
 });
 
+export const ChangePasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "Be at least 8 characters long.")
+      .regex(/[a-zA-Z]/, "Contain at least one letter.")
+      .regex(/[0-9]/, "Contain at least one number."),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match.",
+    path: ["confirmPassword"],
+  });
+
+export const RequestPasswordResetSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email."),
+});
+
 export type AuthFormState =
+  | {
+      errors?: Record<string, string[]>;
+      message?: string;
+    }
+  | undefined;
+
+export type ChangePasswordFormState =
+  | {
+      errors?: Record<string, string[]>;
+      message?: string;
+      success?: boolean;
+    }
+  | undefined;
+
+export type RequestPasswordResetFormState =
   | {
       errors?: Record<string, string[]>;
       message?: string;

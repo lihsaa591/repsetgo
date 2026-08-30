@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 export type SessionPayload = {
   userId: number;
   role: "admin" | "user";
+  mustChangePassword: boolean;
 };
 
 const MIN_SECRET_LENGTH = 32;
@@ -43,11 +44,16 @@ export async function decrypt(
     });
     if (
       typeof payload.userId !== "number" ||
-      (payload.role !== "admin" && payload.role !== "user")
+      (payload.role !== "admin" && payload.role !== "user") ||
+      typeof payload.mustChangePassword !== "boolean"
     ) {
       return null;
     }
-    return { userId: payload.userId, role: payload.role };
+    return {
+      userId: payload.userId,
+      role: payload.role,
+      mustChangePassword: payload.mustChangePassword,
+    };
   } catch {
     return null;
   }

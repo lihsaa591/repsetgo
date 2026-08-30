@@ -23,6 +23,10 @@ export default async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
   }
 
+  if (session?.mustChangePassword && path !== "/change-password") {
+    return NextResponse.redirect(new URL("/change-password", req.nextUrl));
+  }
+
   return NextResponse.next();
 }
 

@@ -17,6 +17,8 @@ const safeUserColumns = {
   email: users.email,
   role: users.role,
   isActive: users.isActive,
+  mustChangePassword: users.mustChangePassword,
+  passwordResetRequestedAt: users.passwordResetRequestedAt,
   heightCm: users.heightCm,
   weightKg: users.weightKg,
   dob: users.dob,

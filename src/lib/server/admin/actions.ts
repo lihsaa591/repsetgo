@@ -1,6 +1,7 @@
 "use server";
 
 import { and, eq } from "drizzle-orm";
+import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/server/db";
@@ -88,6 +89,53 @@ export async function createUserAsAdmin(
 
   revalidatePath("/admin");
   return { success: true };
+}
+
+export type ResetPasswordState = { error: string } | { tempPassword: string } | undefined;
+
+function generateTempPassword(): string {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const candidate = randomBytes(9).toString("base64url");
+    if (/[a-zA-Z]/.test(candidate) && /[0-9]/.test(candidate)) {
+      return candidate;
+    }
+  }
+  // Astronomically unlikely with a 12-character base64url string, but fall
+  // back to a value guaranteed to satisfy the rule rather than loop forever.
+  return `Aa1${randomBytes(9).toString("base64url")}`;
+}
+
+export async function resetUserPassword(
+  _prevState: ResetPasswordState,
+  formData: FormData
+): Promise<ResetPasswordState> {
+  await requireAdmin();
+
+  const targetUserId = Number(formData.get("userId"));
+  if (!Number.isInteger(targetUserId)) {
+    return { error: "Invalid request." };
+  }
+
+  const [target] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.id, targetUserId));
+
+  if (!target) {
+    return { error: "That user no longer exists." };
+  }
+
+  const tempPassword = generateTempPassword();
+  const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+  await db
+    .update(users)
+    .set({ passwordHash, mustChangePassword: true, passwordResetRequestedAt: null })
+    .where(eq(users.id, targetUserId));
+
+  revalidatePath("/admin");
+
+  return { tempPassword };
 }
 
 export async function setUserActive(
