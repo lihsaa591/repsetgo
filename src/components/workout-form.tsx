@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ExercisePicker } from "@/components/exercise-picker";
-import { Trash2, Plus, NotebookPen, ChevronDown } from "lucide-react";
+import { Trash2, Plus, NotebookPen, ChevronDown, ArrowDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { WorkoutLogWithDetails } from "@/lib/server/workouts/queries";
 import type { WorkoutFormState } from "@/lib/server/workouts/validation";
@@ -311,9 +311,22 @@ export function WorkoutForm({
               {exercise.sets.map((set, setIdx) => {
                 const noteOpen = openNoteIds.has(set.id);
                 return (
-                  <div key={set.id} className="flex flex-col gap-1.5">
+                  <div
+                    key={set.id}
+                    className={cn(
+                      "flex flex-col gap-1.5",
+                      set.isDropset && "ml-4 border-l-2 border-primary/40 pl-2"
+                    )}
+                  >
                     <div className="grid grid-cols-[2rem_1fr_1fr_3.5rem_2rem_2rem] items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">{setIdx + 1}</span>
+                      {set.isDropset ? (
+                        <ArrowDownRight
+                          className="h-4 w-4 text-muted-foreground"
+                          aria-label={`Drop from set ${setIdx}`}
+                        />
+                      ) : (
+                        <span className="text-sm font-medium text-muted-foreground">{setIdx + 1}</span>
+                      )}
                       <Input
                         type="number"
                         inputMode="numeric"
