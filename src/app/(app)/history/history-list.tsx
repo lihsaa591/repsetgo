@@ -28,9 +28,26 @@ import {
 } from "@/components/ui/pagination";
 import { deleteWorkoutLog } from "@/lib/server/workouts/actions";
 import type { WorkoutLogWithDetails } from "@/lib/server/workouts/queries";
-import { Pencil, Trash2, NotebookPen } from "lucide-react";
+import { Pencil, Trash2, NotebookPen, ArrowRight } from "lucide-react";
+import type { WorkoutLogWithDetails as WorkoutLogWithDetailsType } from "@/lib/server/workouts/queries";
 
 const PAGE_SIZE = 10;
+
+type SetRow = WorkoutLogWithDetailsType["exercises"][number]["sets"][number];
+
+/** Group each dropset row under the preceding non-dropset set it belongs to. */
+function toDropsetChains(sets: SetRow[]): SetRow[][] {
+  const chains: SetRow[][] = [];
+  for (const s of sets) {
+    const current = chains[chains.length - 1];
+    if (s.isDropset && current) {
+      current.push(s);
+    } else {
+      chains.push([s]);
+    }
+  }
+  return chains;
+}
 
 export function HistoryList({ logs }: { logs: WorkoutLogWithDetails[] }) {
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
@@ -97,17 +114,30 @@ export function HistoryList({ logs }: { logs: WorkoutLogWithDetails[] }) {
               <AccordionContent className="flex flex-col gap-4">
                 {log.exercises.map((ex) => {
                   const setsWithNotes = ex.sets.filter((s) => s.note);
+                  const chains = toDropsetChains(ex.sets);
                   return (
                     <div key={ex.id}>
                       <p className="mb-1 text-sm font-medium">{ex.exerciseName}</p>
                       <div className="flex flex-wrap gap-2">
-                        {ex.sets.map((s) => (
+                        {chains.map((chain) => (
                           <span
-                            key={s.setNumber}
+                            key={chain[0].setNumber}
                             className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs"
                           >
-                            {s.reps} reps × {s.weight}kg
-                            {s.isDropset && (
+                            {chain.map((s, i) => (
+                              <span key={s.setNumber} className="flex items-center gap-1">
+                                {i > 0 && (
+                                  <ArrowRight
+                                    className="h-3 w-3 shrink-0 text-muted-foreground"
+                                    aria-hidden
+                                  />
+                                )}
+                                <span className={i > 0 ? "text-muted-foreground" : undefined}>
+                                  {s.reps} reps × {s.weight}kg
+                                </span>
+                              </span>
+                            ))}
+                            {chain.some((s) => s.isDropset) && (
                               <span
                                 title="Dropset: a set taken to near-failure, then continued at a lower weight without rest"
                                 className="rounded-sm bg-primary px-1 text-[10px] font-semibold tracking-wide text-primary-foreground"
