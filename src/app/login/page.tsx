@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Dumbbell } from "lucide-react";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { login } from "@/lib/server/auth/actions";
 import { requestPasswordReset } from "@/lib/server/auth/password-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,9 +33,19 @@ export default function LoginPage() {
     requestPasswordReset,
     undefined
   );
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (resetState?.message) {
+      setResetMessage(resetState.message);
+    }
+  }, [resetState]);
 
   function handleResetOpenChange(open: boolean) {
     setResetOpen(open);
+    if (!open) {
+      setResetMessage(null);
+    }
   }
 
   return (
@@ -114,11 +124,11 @@ export default function LoginPage() {
 
       <Dialog open={resetOpen} onOpenChange={handleResetOpenChange}>
         <DialogContent>
-          {resetState?.message ? (
+          {resetMessage ? (
             <>
               <DialogHeader>
                 <DialogTitle>Check with your admin</DialogTitle>
-                <DialogDescription>{resetState.message}</DialogDescription>
+                <DialogDescription>{resetMessage}</DialogDescription>
               </DialogHeader>
               <DialogFooter>
                 <Button type="button" onClick={() => setResetOpen(false)}>
