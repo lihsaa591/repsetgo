@@ -4,11 +4,20 @@ import Link from "next/link";
 import { Dumbbell } from "lucide-react";
 import { useActionState, useState } from "react";
 import { login } from "@/lib/server/auth/actions";
+import { requestPasswordReset } from "@/lib/server/auth/password-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 export default function LoginPage() {
   const [state, action, pending] = useActionState(login, undefined);
@@ -18,6 +27,16 @@ export default function LoginPage() {
   // state keeps them in place across that reset.
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetState, resetAction, resetPending] = useActionState(
+    requestPasswordReset,
+    undefined
+  );
+
+  function handleResetOpenChange(open: boolean) {
+    setResetOpen(open);
+  }
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-[38rem] flex-col justify-center gap-8 p-6">
@@ -62,11 +81,20 @@ export default function LoginPage() {
                 <p className="text-xs text-destructive">{state.errors.password[0]}</p>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <Checkbox id="rememberMe" name="rememberMe" value="on" />
-              <Label htmlFor="rememberMe" className="cursor-pointer font-normal text-muted-foreground">
-                Remember me
-              </Label>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Checkbox id="rememberMe" name="rememberMe" value="on" />
+                <Label htmlFor="rememberMe" className="cursor-pointer font-normal text-muted-foreground">
+                  Remember me
+                </Label>
+              </div>
+              <button
+                type="button"
+                onClick={() => setResetOpen(true)}
+                className="text-sm text-primary hover:underline"
+              >
+                Forgot password?
+              </button>
             </div>
             {state?.message && (
               <p className="text-xs text-destructive">{state.message}</p>
@@ -83,6 +111,57 @@ export default function LoginPage() {
           </p>
         </CardContent>
       </Card>
+
+      <Dialog open={resetOpen} onOpenChange={handleResetOpenChange}>
+        <DialogContent>
+          {resetState?.message ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Check with your admin</DialogTitle>
+                <DialogDescription>{resetState.message}</DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button type="button" onClick={() => setResetOpen(false)}>
+                  Done
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Request a password reset</DialogTitle>
+                <DialogDescription>
+                  Enter your account email. An admin will be notified and can
+                  reset your password for you.
+                </DialogDescription>
+              </DialogHeader>
+              <form action={resetAction} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="resetEmail">Email</Label>
+                  <Input id="resetEmail" name="email" type="email" required />
+                  {resetState?.errors?.email && (
+                    <p className="text-xs text-destructive">
+                      {resetState.errors.email[0]}
+                    </p>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setResetOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={resetPending}>
+                    {resetPending ? "Submitting..." : "Submit"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
