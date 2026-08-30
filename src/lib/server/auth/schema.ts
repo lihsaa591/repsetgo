@@ -18,6 +18,7 @@ export const users = pgTable("users", {
     .notNull()
     .default("user"),
   isActive: boolean("is_active").notNull().default(true),
+  mustChangePassword: boolean("must_change_password").notNull().default(false),
   heightCm: numeric("height_cm"),
   weightKg: numeric("weight_kg"),
   dob: date("dob"),
