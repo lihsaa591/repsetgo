@@ -1,4 +1,5 @@
 import ChangePasswordForm from "@/components/change-password-form";
+import { logout } from "@/lib/server/auth/actions";
 
 export default function ChangePasswordPage() {
   return (
@@ -9,7 +10,15 @@ export default function ChangePasswordPage() {
           You need to set a new password before continuing.
         </p>
       </div>
-      <ChangePasswordForm />
+      <ChangePasswordForm redirectTo="/dashboard" />
+      <form action={logout} className="text-center">
+        <button
+          type="submit"
+          className="text-sm text-muted-foreground underline underline-offset-4"
+        >
+          Log out instead
+        </button>
+      </form>
     </div>
   );
 }

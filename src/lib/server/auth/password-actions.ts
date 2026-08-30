@@ -37,5 +37,10 @@ export async function changePassword(
     mustChangePassword: false,
   });
 
-  redirect("/dashboard");
+  const redirectTo = formData.get("redirectTo");
+  if (typeof redirectTo === "string" && redirectTo.length > 0) {
+    redirect(redirectTo);
+  }
+
+  return { success: true };
 }

@@ -40,5 +40,6 @@ export type ChangePasswordFormState =
   | {
       errors?: Record<string, string[]>;
       message?: string;
+      success?: boolean;
     }
   | undefined;

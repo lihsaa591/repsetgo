@@ -1,5 +1,6 @@
+import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/layout/admin-shell";
-import { requireAdmin } from "@/lib/server/auth/dal";
+import { getCurrentUser, requireAdmin } from "@/lib/server/auth/dal";
 
 export default async function Layout({
   children,
@@ -7,5 +8,9 @@ export default async function Layout({
   children: React.ReactNode;
 }) {
   await requireAdmin();
+  const user = await getCurrentUser();
+  if (user.mustChangePassword) {
+    redirect("/change-password");
+  }
   return <AdminShell>{children}</AdminShell>;
 }
