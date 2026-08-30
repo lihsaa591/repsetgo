@@ -133,6 +133,8 @@ export async function resetUserPassword(
     .set({ passwordHash, mustChangePassword: true, passwordResetRequestedAt: null })
     .where(eq(users.id, targetUserId));
 
+  revalidatePath("/admin");
+
   return { tempPassword };
 }
 

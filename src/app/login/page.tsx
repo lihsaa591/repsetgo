@@ -34,10 +34,14 @@ export default function LoginPage() {
     undefined
   );
   const [resetMessage, setResetMessage] = useState<string | null>(null);
+  const [resetEmailError, setResetEmailError] = useState<string | null>(null);
 
   useEffect(() => {
     if (resetState?.message) {
       setResetMessage(resetState.message);
+    }
+    if (resetState?.errors?.email) {
+      setResetEmailError(resetState.errors.email[0]);
     }
   }, [resetState]);
 
@@ -45,6 +49,7 @@ export default function LoginPage() {
     setResetOpen(open);
     if (!open) {
       setResetMessage(null);
+      setResetEmailError(null);
     }
   }
 
@@ -131,7 +136,7 @@ export default function LoginPage() {
                 <DialogDescription>{resetMessage}</DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button type="button" onClick={() => setResetOpen(false)}>
+                <Button type="button" onClick={() => handleResetOpenChange(false)}>
                   Done
                 </Button>
               </DialogFooter>
@@ -149,9 +154,9 @@ export default function LoginPage() {
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="resetEmail">Email</Label>
                   <Input id="resetEmail" name="email" type="email" required />
-                  {resetState?.errors?.email && (
-                    <p className="text-xs text-destructive">
-                      {resetState.errors.email[0]}
+                  {resetEmailError && (
+                    <p className="text-xs text-destructive" role="alert">
+                      {resetEmailError}
                     </p>
                   )}
                 </div>
@@ -159,7 +164,7 @@ export default function LoginPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setResetOpen(false)}
+                    onClick={() => handleResetOpenChange(false)}
                   >
                     Cancel
                   </Button>

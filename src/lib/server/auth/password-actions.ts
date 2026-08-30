@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/server/db";
@@ -65,7 +65,7 @@ export async function requestPasswordReset(
   const [user] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.email, validated.data.email));
+    .where(eq(sql`lower(${users.email})`, validated.data.email.toLowerCase()));
 
   if (user) {
     await db
