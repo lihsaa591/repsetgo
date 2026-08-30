@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/lib/server/auth/dal";
 import { AccountSettingsForm } from "./account-settings-form";
+import ChangePasswordForm from "@/components/change-password-form";
 
 export default async function AccountSettingsPage() {
   const user = await getCurrentUser();
@@ -13,6 +14,7 @@ export default async function AccountSettingsPage() {
         </p>
       </div>
       <AccountSettingsForm user={user} />
+      <ChangePasswordForm />
     </div>
   );
 }
