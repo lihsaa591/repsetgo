@@ -7,7 +7,12 @@ import { db } from "@/lib/server/db";
 import { users } from "./schema";
 import { verifySession } from "./dal";
 import { createSessionCookie } from "./session";
-import { ChangePasswordSchema, type ChangePasswordFormState } from "./validation";
+import {
+  ChangePasswordSchema,
+  type ChangePasswordFormState,
+  RequestPasswordResetSchema,
+  type RequestPasswordResetFormState,
+} from "./validation";
 
 export async function changePassword(
   _prevState: ChangePasswordFormState,
@@ -43,4 +48,36 @@ export async function changePassword(
   }
 
   return { success: true };
+}
+
+export async function requestPasswordReset(
+  _prevState: RequestPasswordResetFormState,
+  formData: FormData
+): Promise<RequestPasswordResetFormState> {
+  const validated = RequestPasswordResetSchema.safeParse({
+    email: formData.get("email"),
+  });
+
+  if (!validated.success) {
+    return { errors: validated.error.flatten().fieldErrors };
+  }
+
+  const [user] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, validated.data.email));
+
+  if (user) {
+    await db
+      .update(users)
+      .set({ passwordResetRequestedAt: new Date() })
+      .where(eq(users.id, user.id));
+  }
+
+  // Same message whether or not the email matched an account — this must
+  // never branch on `user` being found, or the form becomes a way to check
+  // which emails are registered.
+  return {
+    message: "If that email is registered, an admin has been notified.",
+  };
 }
