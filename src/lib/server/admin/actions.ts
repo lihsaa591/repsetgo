@@ -130,7 +130,7 @@ export async function resetUserPassword(
 
   await db
     .update(users)
-    .set({ passwordHash, mustChangePassword: true })
+    .set({ passwordHash, mustChangePassword: true, passwordResetRequestedAt: null })
     .where(eq(users.id, targetUserId));
 
   return { tempPassword };

@@ -16,6 +16,7 @@ export type AdminUserRow = {
   totalLogs: number;
   lastLogDate: string | null;
   customExerciseCount: number;
+  passwordResetRequestedAt: string | null;
 };
 
 export async function getAllUsersWithStats(): Promise<AdminUserRow[]> {
@@ -27,6 +28,7 @@ export async function getAllUsersWithStats(): Promise<AdminUserRow[]> {
       role: users.role,
       isActive: users.isActive,
       createdAt: users.createdAt,
+      passwordResetRequestedAt: users.passwordResetRequestedAt,
     })
     .from(users);
 
@@ -65,6 +67,9 @@ export async function getAllUsersWithStats(): Promise<AdminUserRow[]> {
       totalLogs: userLogStats?.totalLogs ?? 0,
       lastLogDate: userLogStats?.lastLogDate ?? null,
       customExerciseCount: userExerciseStats?.customExerciseCount ?? 0,
+      passwordResetRequestedAt: user.passwordResetRequestedAt
+        ? user.passwordResetRequestedAt.toISOString()
+        : null,
     };
   });
 }

@@ -40,6 +40,17 @@ import type { AdminUserRow } from "@/lib/server/admin/queries";
 
 const PAGE_SIZE = 10;
 
+function timeAgo(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime();
+  const minutes = Math.floor(ms / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 function initials(name: string) {
   return name
     .split(" ")
@@ -92,6 +103,11 @@ export function UsersList({
                       <div>
                         <p className="font-medium leading-none">{user.name}</p>
                         <p className="text-xs text-muted-foreground">{user.email}</p>
+                        {user.passwordResetRequestedAt && (
+                          <Badge variant="outline" className="mt-1 text-[10px]">
+                            Reset requested {timeAgo(user.passwordResetRequestedAt)}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </TableCell>
