@@ -34,8 +34,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Trash2 } from "lucide-react";
-import { setUserRole, setUserActive, deleteUser } from "@/lib/server/admin/actions";
+import { Loader2, Trash2, KeyRound, Copy, Check } from "lucide-react";
+import { setUserRole, setUserActive, deleteUser, resetUserPassword } from "@/lib/server/admin/actions";
 import type { AdminUserRow } from "@/lib/server/admin/queries";
 
 const PAGE_SIZE = 10;
@@ -116,6 +116,7 @@ export function UsersList({
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
+                      <ResetPasswordControl userId={user.id} userName={user.name} />
                       <DeleteUserControl
                         userId={user.id}
                         userName={user.name}
@@ -317,6 +318,115 @@ function DeleteUserControl({
           <p className="text-xs text-destructive" role="alert">
             {state.error}
           </p>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ResetPasswordControl({
+  userId,
+  userName,
+}: {
+  userId: number;
+  userName: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [revealed, setRevealed] = useState<string | null>(null);
+  const [state, action, pending] = useActionState(resetUserPassword, undefined);
+
+  useEffect(() => {
+    if (state && "tempPassword" in state) {
+      setRevealed(state.tempPassword);
+    }
+  }, [state]);
+
+  function handleOpenChange(next: boolean) {
+    setOpen(next);
+    if (!next) {
+      setRevealed(null);
+      setCopied(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Reset password"
+        onClick={() => setOpen(true)}
+      >
+        <KeyRound className="h-3.5 w-3.5" />
+        <span className="sr-only">Reset password</span>
+      </Button>
+      <DialogContent>
+        {revealed ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>New password for {userName}</DialogTitle>
+              <DialogDescription>
+                This won&apos;t be shown again — copy it now and share it with
+                them directly.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 rounded-md bg-muted px-2 py-1.5 text-sm">
+                {revealed}
+              </code>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  navigator.clipboard.writeText(revealed);
+                  setCopied(true);
+                }}
+              >
+                {copied ? (
+                  <Check className="h-3.5 w-3.5" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5" />
+                )}
+              </Button>
+            </div>
+            <DialogFooter>
+              <Button type="button" onClick={() => handleOpenChange(false)}>
+                Done
+              </Button>
+            </DialogFooter>
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Reset {userName}&apos;s password?</DialogTitle>
+              <DialogDescription>
+                They&apos;ll need a new password from you to log in — this
+                generates one for you to share with them.
+              </DialogDescription>
+            </DialogHeader>
+            <form action={action}>
+              <input type="hidden" name="userId" value={userId} />
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleOpenChange(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={pending}>
+                  {pending ? "Resetting..." : "Reset password"}
+                </Button>
+              </DialogFooter>
+            </form>
+            {state && "error" in state && (
+              <p className="text-xs text-destructive" role="alert">
+                {state.error}
+              </p>
+            )}
+          </>
         )}
       </DialogContent>
     </Dialog>
