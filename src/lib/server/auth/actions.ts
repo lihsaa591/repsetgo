@@ -45,7 +45,7 @@ export async function signup(
     .values({ name, email, passwordHash })
     .returning({ id: users.id, role: users.role });
 
-  await createSessionCookie({ userId: user.id, role: user.role });
+  await createSessionCookie({ userId: user.id, role: user.role, mustChangePassword: false });
   after(() => sendWelcomeEmail(email, name));
   redirect("/dashboard");
 }
@@ -80,7 +80,10 @@ export async function login(
   }
 
   const rememberMe = formData.get("rememberMe") === "on";
-  await createSessionCookie({ userId: user.id, role: user.role }, rememberMe);
+  await createSessionCookie(
+    { userId: user.id, role: user.role, mustChangePassword: user.mustChangePassword },
+    rememberMe
+  );
   redirect("/dashboard");
 }
 
