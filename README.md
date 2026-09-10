@@ -8,6 +8,12 @@
   <a href="https://myrepsetgo.vercel.app"><img alt="Vercel deployment status" src="https://therealsujitk-vercel-badge.vercel.app/?app=repsetgo"></a>
 </p>
 
+<p align="center">
+  <a href="https://neon.com"><img src="public/neon-logo.svg" alt="Neon" width="160"></a>
+  <br>
+  Sponsored by the Neon Open Source Program
+</p>
+
 Simple, fast gym logging. Track workouts, sets, and reps; get suggested
 next workouts based on your history; install it as a PWA on your phone.
 
